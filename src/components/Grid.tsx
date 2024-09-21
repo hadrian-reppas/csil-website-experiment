@@ -5,72 +5,58 @@ interface GridProps {
   grid: boolean[][];
   sideLength: number;
   gap: number;
-  color: string;
+  onColor: string;
+  offColor: string;
+  flip: (i: number, j: number) => void,
 }
 
-interface ArrowProps {
-  color: string;
-}
-
-function Left({ color }: ArrowProps) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="100%"
-      height="100%"
-      viewBox="0 0 86.603 100"
-    >
-      <path fill={color} d="M86.603 0 0 50l86.603 50z" />
-    </svg>
-  );
-}
-
-function Right({ color }: ArrowProps) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="100%"
-      height="100%"
-      viewBox="0 0 86.603 100"
-    >
-      <path fill={color} d="m0 0 86.603 50L0 100z" />
-    </svg>
-  );
-}
-
-export default function Grid({ grid, sideLength, gap, color }: GridProps) {
+export default function Grid({
+  grid,
+  sideLength,
+  gap,
+  onColor,
+  offColor,
+  flip,
+}: GridProps) {
   const [rows, cols] = [grid.length, grid[0]!.length];
   const triangleWidth = (Math.sqrt(3) * sideLength) / 2;
   const verticalGap = (2 * gap) / Math.sqrt(3);
 
   return (
-    <div
-      style={{
-        width: `${cols * triangleWidth + (cols - 1) * gap}px`,
-        height: `${((rows + 1) * sideLength) / 2 + (rows - 1) * verticalGap}px`,
-      }}
-      className="relative"
+    <svg
+      width={`${cols * triangleWidth + (cols - 1) * gap}px`}
+      height={`${((rows + 1) * sideLength) / 2 + (rows - 1) * verticalGap}px`}
     >
       {grid.map((row, i) =>
-        row.map((value, j) => (
-          <div
-            style={{
-              marginTop: `${(sideLength / 2 + verticalGap) * i}px`,
-              marginLeft: `${(triangleWidth + gap) * j}px`,
-              width: `${triangleWidth}px`,
-              height: `${sideLength}`,
-              color: value ? color : "#ffffff",
-            }}
-            className="absolute"
-          >
-            {(i + j) % 2 == 0 ? (
-              <Right color={value ? "#ff0000" : "#ffffff"} />
-            ) : (
-              <Left color={value ? "#ff0000" : "#ffffff"} />
-            )}
-          </div>
-        )),
+        row.map((value, j) => {
+          const top = (sideLength / 2 + verticalGap) * i;
+          const middle = top + sideLength / 2;
+          const bottom = top + sideLength;
+          const left = (triangleWidth + gap) * j;
+          const right = left + triangleWidth;
+          if ((i + j) % 2 == 0) {
+            return (
+              <polygon
+                key={`${i}-${j}`}
+                points={`${left},${top} ${right},${middle} ${left},${bottom}`}
+                fill={value ? onColor : offColor}
+                stroke="none"
+                onMouseEnter={() => flip(i, j)}
+              />
+            );
+          } else {
+            return (
+              <polygon
+                key={`${i}-${j}`}
+                points={`${right},${top} ${left},${middle} ${right},${bottom}`}
+                fill={value ? onColor : offColor}
+                stroke="none"
+                onMouseEnter={() => flip(i, j)}
+              />
+            );
+          }
+        }),
       )}
-    </div>
+    </svg>
   );
 }
