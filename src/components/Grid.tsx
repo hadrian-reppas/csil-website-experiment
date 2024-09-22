@@ -56,7 +56,7 @@ const GRID = TEXT.map((row) =>
 
 const MILLIS_BEFORE_FIRST_CLEANUP_PHASE = 1000;
 const MILLIS_BETWEEN_CLEANUP_PHASES = 50;
-const CLEANUP_PHASES = 10;
+const CLEANUP_DISTRIBUTION = [0.02, 0.06, 0.14, 0.24, 0.36, 0.48, 0.6, 0.72, 0.86, 1.0];
 const MIN_MILLIS_BETWEEN_RENDERS = 20;
 
 const getTriangles = (): Float32Array => {
@@ -287,29 +287,19 @@ const TriangleRenderer: React.FC<{}> = ({}) => {
       clearTimeout(cleanupTimeoutId);
     }
 
-    const coords: number[][] = [];
+    cleanupPhases = Array.from({length: CLEANUP_DISTRIBUTION.length}, () => []);
     for (let i = 0; i < GRID.length; i++) {
       for (let j = 0; j < GRID[0]!.length; j++) {
-        coords.push([i, j]);
+        const x = Math.random();
+        for (let k = 0; k < CLEANUP_DISTRIBUTION.length; k++) {
+            if (x <= CLEANUP_DISTRIBUTION[k]!) {
+                cleanupPhases[k]!.push([i, j]);
+                break;
+            }
+        }
       }
     }
-
-    for (let i = coords.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [coords[i], coords[j]] = [coords[j]!, coords[i]!];
-    }
-
-    const baseSize = Math.floor(coords.length / CLEANUP_PHASES);
-    const extra = coords.length % CLEANUP_PHASES;
-
-    cleanupPhases = [];
-    let currentIndex = 0;
-    for (let groupIndex = 0; groupIndex < CLEANUP_PHASES; groupIndex++) {
-      const groupSize = groupIndex < extra ? baseSize + 1 : baseSize;
-      const group = coords.slice(currentIndex, currentIndex + groupSize);
-      cleanupPhases.push(group);
-      currentIndex += groupSize;
-    }
+    console.log(cleanupPhases.length, cleanupPhases.map(x => x.length));
 
     cleanupTimeoutId = setTimeout(
       doCleanupPhase,
@@ -360,13 +350,6 @@ const TriangleRenderer: React.FC<{}> = ({}) => {
       window.removeEventListener("resize", setCanvasSize);
     };
   }, []);
-
-  /*
-  // TODO: render when state changes
-  useEffect(() => {
-    render();
-  }, []);
-  */
 
   return (
     <div
