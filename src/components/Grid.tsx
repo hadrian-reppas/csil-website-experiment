@@ -55,9 +55,28 @@ const GRID = TEXT.map((row) =>
 );
 
 const MILLIS_BEFORE_FIRST_CLEANUP_PHASE = 1000;
-const MILLIS_BETWEEN_CLEANUP_PHASES = [150, 100, 75, 50, 50, 50, 50, 50, 50, 50];
-const CLEANUP_DISTRIBUTION = [0.02, 0.06, 0.14, 0.24, 0.36, 0.48, 0.6, 0.72, 0.86, 1.0];
+const MILLIS_BETWEEN_CLEANUP_PHASES = 50;
+const CLEANUP_DISTRIBUTION = [
+  0.04, 0.1, 0.18, 0.28, 0.38, 0.48, 0.58, 0.72, 0.86, 1,
+];
 const MIN_MILLIS_BETWEEN_RENDERS = 20;
+
+const CLEANUP_PHASES_TEMPLATE: number[][][] = Array.from(
+  { length: CLEANUP_DISTRIBUTION.length },
+  () => [],
+);
+for (let i = 0; i < GRID.length; i++) {
+  for (let j = 0; j < GRID[0]!.length; j++) {
+    const x = Math.random();
+    for (let k = 0; k < CLEANUP_DISTRIBUTION.length; k++) {
+      if (x <= CLEANUP_DISTRIBUTION[k]!) {
+        CLEANUP_PHASES_TEMPLATE[k]!.push([i, j]);
+        break;
+      }
+    }
+  }
+}
+
 
 const getTriangles = (): Float32Array => {
   const vertcies = [];
@@ -141,7 +160,8 @@ const TriangleRenderer: React.FC<{}> = ({}) => {
     return null;
   };
 
-  let canvasActive = typeof window !== "undefined" ? window.innerWidth >= 640 : true;
+  let canvasActive =
+    typeof window !== "undefined" ? window.innerWidth >= 640 : true;
   const render = () => {
     const gl = glRef.current;
     const program = programRef.current;
@@ -277,7 +297,7 @@ const TriangleRenderer: React.FC<{}> = ({}) => {
     if (cleanupPhases.length > 0) {
       cleanupTimeoutId = setTimeout(
         doCleanupPhase,
-        MILLIS_BETWEEN_CLEANUP_PHASES[cleanupPhases.length - 1],
+        MILLIS_BETWEEN_CLEANUP_PHASES,
       );
     }
   };
@@ -287,20 +307,8 @@ const TriangleRenderer: React.FC<{}> = ({}) => {
       clearTimeout(cleanupTimeoutId);
     }
 
-    cleanupPhases = Array.from({length: CLEANUP_DISTRIBUTION.length}, () => []);
-    for (let i = 0; i < GRID.length; i++) {
-      for (let j = 0; j < GRID[0]!.length; j++) {
-        const x = Math.random();
-        for (let k = 0; k < CLEANUP_DISTRIBUTION.length; k++) {
-            if (x <= CLEANUP_DISTRIBUTION[k]!) {
-                cleanupPhases[k]!.push([i, j]);
-                break;
-            }
-        }
-      }
-    }
-    console.log(cleanupPhases.length, cleanupPhases.map(x => x.length));
-
+    cleanupPhases = [...CLEANUP_PHASES_TEMPLATE];
+    
     cleanupTimeoutId = setTimeout(
       doCleanupPhase,
       MILLIS_BEFORE_FIRST_CLEANUP_PHASE,
