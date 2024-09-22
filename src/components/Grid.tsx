@@ -55,7 +55,7 @@ const GRID = TEXT.map((row) =>
 );
 
 const MILLIS_BEFORE_FIRST_CLEANUP_PHASE = 1000;
-const MILLIS_BETWEEN_CLEANUP_PHASES = 50;
+const MILLIS_BETWEEN_CLEANUP_PHASES = [150, 100, 75, 50, 50, 50, 50, 50, 50, 50];
 const CLEANUP_DISTRIBUTION = [0.02, 0.06, 0.14, 0.24, 0.36, 0.48, 0.6, 0.72, 0.86, 1.0];
 const MIN_MILLIS_BETWEEN_RENDERS = 20;
 
@@ -277,7 +277,7 @@ const TriangleRenderer: React.FC<{}> = ({}) => {
     if (cleanupPhases.length > 0) {
       cleanupTimeoutId = setTimeout(
         doCleanupPhase,
-        MILLIS_BETWEEN_CLEANUP_PHASES,
+        MILLIS_BETWEEN_CLEANUP_PHASES[cleanupPhases.length - 1],
       );
     }
   };
