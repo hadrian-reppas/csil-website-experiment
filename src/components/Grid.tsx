@@ -61,22 +61,24 @@ const CLEANUP_DISTRIBUTION = [
 ];
 const MIN_MILLIS_BETWEEN_RENDERS = 20;
 
-const CLEANUP_PHASES_TEMPLATE: number[][][] = Array.from(
-  { length: CLEANUP_DISTRIBUTION.length },
-  () => [],
-);
-for (let i = 0; i < GRID.length; i++) {
-  for (let j = 0; j < GRID[0]!.length; j++) {
-    const x = Math.random();
-    for (let k = 0; k < CLEANUP_DISTRIBUTION.length; k++) {
-      if (x <= CLEANUP_DISTRIBUTION[k]!) {
-        CLEANUP_PHASES_TEMPLATE[k]!.push([i, j]);
-        break;
+const makeCleanupTemplate = () => {
+  const cleanupPhases: number[][][] = Array.from(
+    { length: CLEANUP_DISTRIBUTION.length },
+    () => [],
+  );
+  for (let i = 0; i < GRID.length; i++) {
+    for (let j = 0; j < GRID[0]!.length; j++) {
+      const x = Math.random();
+      for (let k = 0; k < CLEANUP_DISTRIBUTION.length; k++) {
+        if (x <= CLEANUP_DISTRIBUTION[k]!) {
+          cleanupPhases[k]!.push([i, j]);
+          break;
+        }
       }
     }
   }
-}
-
+  return cleanupPhases;
+};
 
 const getTriangles = (): Float32Array => {
   const vertcies = [];
@@ -111,7 +113,7 @@ const getTriangles = (): Float32Array => {
   return new Float32Array(vertcies);
 };
 
-const TriangleRenderer: React.FC<{}> = ({}) => {
+const Grid: React.FC<{}> = ({}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const programRef = useRef<WebGLProgram | null>(null);
@@ -307,8 +309,8 @@ const TriangleRenderer: React.FC<{}> = ({}) => {
       clearTimeout(cleanupTimeoutId);
     }
 
-    cleanupPhases = [...CLEANUP_PHASES_TEMPLATE];
-    
+    cleanupPhases = makeCleanupTemplate();
+
     cleanupTimeoutId = setTimeout(
       doCleanupPhase,
       MILLIS_BEFORE_FIRST_CLEANUP_PHASE,
@@ -380,4 +382,4 @@ const TriangleRenderer: React.FC<{}> = ({}) => {
   );
 };
 
-export default TriangleRenderer;
+export default Grid;
