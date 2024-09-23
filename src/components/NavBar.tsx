@@ -2,6 +2,8 @@ import { useRef, useEffect, useState, RefObject, createRef } from "react";
 import Link from "next/link";
 
 import logo from "../../pubilc/logo.svg";
+import hamburger from "../../pubilc/hamburger.svg";
+import x from "../../pubilc/x.svg";
 
 const NAVBAR_ITEMS: Item[] = [
   {
@@ -81,6 +83,11 @@ interface DropdownProps {
   dropdownRef: RefObject<HTMLDivElement>;
 }
 
+interface MobileDropdownProps {
+  isOpen: boolean;
+  close: () => void;
+}
+
 const NavBarItem: React.FC<NavBarItemProps> = ({
   item,
   isSelected,
@@ -104,7 +111,7 @@ const Dropdown: React.FC<DropdownProps> = ({ item, isOpen, dropdownRef }) => {
   const links = item ? item.links : [];
   return (
     <div
-      className={`overflow-none absolute top-full grid w-screen grid-cols-2 gap-x-4 bg-black px-6 duration-300 ${dropdownHeight}`}
+      className={`overflow-none absolute top-full hidden w-screen grid-cols-2 gap-x-4 bg-black px-6 duration-300 sm:grid ${dropdownHeight}`}
       style={{ transitionProperty: "height" }}
       ref={dropdownRef}
     >
@@ -128,12 +135,56 @@ const Dropdown: React.FC<DropdownProps> = ({ item, isOpen, dropdownRef }) => {
   );
 };
 
+const MobileDropdown: React.FC<MobileDropdownProps> = ({ isOpen, close }) => {
+  if (isOpen && typeof document !== "undefined") {
+    document.body.classList.add("overflow-hidden");
+  } else if (typeof document !== "undefined") {
+    document.body.classList.remove("overflow-hidden");
+  }
+
+  const height = isOpen ? "h-screen" : "h-0";
+  return (
+    <div className="pointer-events-none fixed h-full w-full">
+      <div
+        className={`pointer-events-auto sticky top-0 flex w-full flex-col overflow-y-scroll bg-black duration-500 sm:hidden ${height}`}
+        style={{ transitionProperty: "height" }}
+      >
+        <div className="flex h-14 w-full flex-row justify-end">
+          <button className="h-14 w-14 p-3" onClick={close}>
+            <img className="h-8 w-8" src={x.src} alt="close menu icon" />
+          </button>
+        </div>
+        <div className="grid w-full grid-cols-2 gap-x-4 px-4 pt-4 text-white">
+          {NAVBAR_ITEMS.map((item) => (
+            <div
+              key={item.index}
+              className="col-span-2 grid gap-y-1 border-t border-gray-600 px-2 pb-8 pt-1"
+            >
+              <span className="mb-1 text-sm">{item.name}</span>
+              {item.links.map((link, index) => (
+                <Link
+                  key={index}
+                  href={link.href}
+                  className="block text-2xl text-white transition-opacity hover:opacity-70"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const NavBar: React.FC<{}> = ({}) => {
   const [selected, setSelected] = useState<Item | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [highlight, setHighlight] = useState<Highlight | null>(null);
   const [highlighTransition, setHighlighTransition] =
     useState<string>("transition-opacity");
+  const [mobileDrodownOpen, setMobileDrodownOpen] = useState(false);
   const parentRef = useRef<HTMLDivElement>(null);
   const buttonRefs = useRef(
     new Array(NAVBAR_ITEMS.length)
@@ -173,7 +224,7 @@ const NavBar: React.FC<{}> = ({}) => {
       ) {
         setSelectedIndex(null);
       }
-    }
+    };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
@@ -184,35 +235,52 @@ const NavBar: React.FC<{}> = ({}) => {
   const highlightOpacity = selectedIndex === null ? "opacity-0" : "opacity-100";
 
   return (
-    <header className="relative sticky top-0 flex h-14 w-full flex-row border-b border-black bg-white text-[22px] font-light">
-      <button className="w-14 shrink-0 p-3">
-        <img className="h-8 w-8" src={logo.src} alt="CSIL logo" />
-      </button>
-      <div className="relative flex flex-row" ref={parentRef}>
-        {NAVBAR_ITEMS.map((item, index) => (
-          <NavBarItem
-            item={item}
-            isSelected={item.index === selectedIndex}
-            handleClick={handleClick}
-            buttonRef={buttonRefs.current[index]!}
-            key={index}
+    <>
+      <header className="relative sticky top-0 flex h-14 w-full flex-row border-b border-black bg-white text-[22px] font-light">
+        <Link className="w-14 shrink-0 p-3" href="/">
+          <img className="h-8 w-8" src={logo.src} alt="CSIL logo" />
+        </Link>
+        <div className="relative hidden flex-row sm:flex" ref={parentRef}>
+          {NAVBAR_ITEMS.map((item, index) => (
+            <NavBarItem
+              item={item}
+              isSelected={item.index === selectedIndex}
+              handleClick={handleClick}
+              buttonRef={buttonRefs.current[index]!}
+              key={index}
+            />
+          ))}
+          <div
+            className={`pointer-events-none absolute left-0 right-0 h-full origin-left bg-white mix-blend-difference ${highlightOpacity} ${highlighTransition} duration-300`}
+            style={{
+              transform: highlight
+                ? `scale(${highlight.scale}, 1) translate(${highlight.translate}px, 0)`
+                : undefined,
+            }}
+          ></div>
+        </div>
+        <div className="grow sm:hidden"></div>
+        <button
+          className="h-14 w-14 p-3 sm:hidden"
+          onClick={() => setMobileDrodownOpen(true)}
+        >
+          <img
+            className="h-8 w-8"
+            src={hamburger.src}
+            alt="hamburger menu icon"
           />
-        ))}
-        <div
-          className={`pointer-events-none absolute left-0 right-0 h-full origin-left bg-white mix-blend-difference ${highlightOpacity} ${highlighTransition} duration-300`}
-          style={{
-            transform: highlight
-              ? `scale(${highlight.scale}, 1) translate(${highlight.translate}px, 0)`
-              : undefined,
-          }}
-        ></div>
-      </div>
-      <Dropdown
-        item={selected}
-        isOpen={selectedIndex !== null}
-        dropdownRef={dropdownRef}
+        </button>
+        <Dropdown
+          item={selected}
+          isOpen={selectedIndex !== null}
+          dropdownRef={dropdownRef}
+        />
+      </header>
+      <MobileDropdown
+        isOpen={mobileDrodownOpen}
+        close={() => setMobileDrodownOpen(false)}
       />
-    </header>
+    </>
   );
 };
 

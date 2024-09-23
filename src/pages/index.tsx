@@ -4,12 +4,10 @@ import NavBar from "~/components/NavBar";
 
 export default function Home() {
   return (
-    <>
-      <main className="flex min-h-screen flex-col">
-        <Grid />
-        <NavBar />
-        <Content />
-      </main>
-    </>
+    <main className="relative flex min-h-screen flex-col">
+      <Grid />
+      <NavBar />
+      <Content />
+    </main>
   );
 }

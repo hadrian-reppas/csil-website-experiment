@@ -1,11 +1,10 @@
 const Content: React.FC<{}> = ({}) => {
   return (
-    <div className="grid w-full grid-cols-10 divide-x divide-y">
-      {Array.from({ length: 200 }, (_, i) => {
-        const row = Math.floor(i / 10);
-        const col = i % 10;
+    <div className="grid w-full grid-cols-10">
+      {Array.from({ length: 300 }, (_, i) => {
+        const borderR = i % 10 === 9 ? "" : "border-r";
         return (
-          <div key={i} className="flex aspect-square items-center justify-center">
+          <div key={i} className={`aspect-square border-b ${borderR}`}>
           </div>
         );
       })}
