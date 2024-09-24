@@ -5,8 +5,12 @@ export default {
   content: ["./src/**/*.tsx"],
   theme: {
     extend: {
+      extend: {
+        backgroundImage: {
+          'csil-pattern': "url('/images/csil_pattern.svg')",
+        },
+      },
       fontFamily: {
-        sans: ["var(--font-geist-sans)", ...fontFamily.sans],
         serif: ["Cormorant Garamond", ...fontFamily.serif],
       },
     },

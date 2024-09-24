@@ -44,7 +44,7 @@ const NAVBAR_ITEMS: Item[] = [
     text: "Looking for more? Check out these resources.",
     links: [
       { label: "MADD Center", href: "https://maddcenter.uchicago.edu/" },
-      { label: "UChicago CS", href: "https://computerscience.uchicago.edu/" },
+      { label: "UChicago CS", href: "https://cs.uchicago.edu/" },
       {
         label: "John Crerar Library",
         href: "https://www.lib.uchicago.edu/crerar/",
@@ -111,7 +111,7 @@ const Dropdown: React.FC<DropdownProps> = ({ item, isOpen, dropdownRef }) => {
   const links = item ? item.links : [];
   return (
     <div
-      className={`overflow-none absolute top-full hidden w-screen grid-cols-2 gap-x-4 bg-black px-6 duration-300 sm:grid ${dropdownHeight}`}
+      className={`overflow-hidden absolute top-full hidden w-screen grid-cols-2 gap-x-4 bg-black px-6 duration-300 sm:grid ${dropdownHeight}`}
       style={{ transitionProperty: "height" }}
       ref={dropdownRef}
     >
@@ -144,7 +144,7 @@ const MobileDropdown: React.FC<MobileDropdownProps> = ({ isOpen, close }) => {
 
   const height = isOpen ? "h-screen" : "h-0";
   return (
-    <div className="pointer-events-none fixed h-full w-full">
+    <div className="pointer-events-none fixed h-full w-full z-10">
       <div
         className={`pointer-events-auto sticky top-0 flex w-full flex-col overflow-y-scroll bg-black duration-500 sm:hidden ${height}`}
         style={{ transitionProperty: "height" }}
@@ -236,7 +236,7 @@ const NavBar: React.FC<{}> = ({}) => {
 
   return (
     <>
-      <header className="relative sticky top-0 flex h-14 w-full flex-row border-b border-black bg-white text-[22px] font-light">
+      <header className="relative sticky top-0 z-10 flex h-14 w-full flex-row border-b border-black bg-white text-[22px] font-light">
         <Link className="w-14 shrink-0 p-3" href="/">
           <img className="h-8 w-8" src={logo.src} alt="CSIL logo" />
         </Link>
