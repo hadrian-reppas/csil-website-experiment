@@ -1,10 +1,14 @@
+// eslint disable @typescript-eslint/no-unsafe-assignment
+// eslint disable @typescript-eslint/no-unsafe-member-access
+
+
 import { useRef, useState } from "react";
 
 import facebook from "../../pubilc/social_logos/facebook.svg";
 import instagram from "../../pubilc/social_logos/instagram.svg";
 import x from "../../pubilc/social_logos/x.svg";
 
-const Footer: React.FC<{}> = ({}) => {
+const Footer: React.FC = () => {
   const csilCsilCsilRef = useRef<HTMLDivElement>(null);
   const [mouseCoords, setMouseCoords] = useState({ x: 0, y: 0 });
 

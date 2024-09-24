@@ -178,7 +178,7 @@ const MobileDropdown: React.FC<MobileDropdownProps> = ({ isOpen, close }) => {
   );
 };
 
-const NavBar: React.FC<{}> = ({}) => {
+const NavBar: React.FC = () => {
   const [selected, setSelected] = useState<Item | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [highlight, setHighlight] = useState<Highlight | null>(null);

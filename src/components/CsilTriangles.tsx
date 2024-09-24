@@ -109,7 +109,7 @@ const getTriangles = (): Float32Array => {
   return new Float32Array(vertcies);
 };
 
-const CsilTriangles: React.FC<{}> = ({}) => {
+const CsilTriangles: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const programRef = useRef<WebGLProgram | null>(null);
@@ -128,7 +128,7 @@ const CsilTriangles: React.FC<{}> = ({}) => {
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
 
-    const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+    const success: unknown = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
     if (success) return shader;
 
     console.error("Error compiling shader:", gl.getShaderInfoLog(shader));
@@ -150,7 +150,7 @@ const CsilTriangles: React.FC<{}> = ({}) => {
     gl.attachShader(program, fragmentShader);
     gl.linkProgram(program);
 
-    const success = gl.getProgramParameter(program, gl.LINK_STATUS);
+    const success: unknown = gl.getProgramParameter(program, gl.LINK_STATUS);
     if (success) return program;
 
     console.error("Program linking failed:", gl.getProgramInfoLog(program));
