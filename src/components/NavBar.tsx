@@ -144,7 +144,7 @@ const MobileDropdown: React.FC<MobileDropdownProps> = ({ isOpen, close }) => {
 
   const height = isOpen ? "h-screen" : "h-0";
   return (
-    <div className="pointer-events-none fixed h-full w-full z-10">
+    <div className="pointer-events-none fixed h-dvh w-full z-10">
       <div
         className={`pointer-events-auto sticky top-0 flex w-full flex-col overflow-y-scroll bg-black duration-500 sm:hidden ${height}`}
         style={{ transitionProperty: "height" }}
