@@ -333,7 +333,7 @@ const CsilTriangles: React.FC = () => {
   let cleanupPhases: number[][][] = [];
   let cleanupTimeoutId: NodeJS.Timeout | null = null;
   const doCleanupPhase = () => {
-    let text = useOneLine ? ONE_LINE : TWO_LINES;
+    const text = useOneLine ? ONE_LINE : TWO_LINES;
     cleanupPhases
       .pop()!
       .forEach(
