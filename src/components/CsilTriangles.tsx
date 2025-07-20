@@ -1,8 +1,6 @@
 import React, { useRef, useEffect } from "react";
 
-import image from "../../pubilc/csil_triangles.png";
-
-const TEXT = [
+const TWO_LINES = [
   "                                                                                                                                      ",
   "   ##                    #                                                       ##                                #             ##   ",
   "  ####      ##          ##    ##                ##                ##            ####      ##          ##          ##    ##      ####  ",
@@ -48,66 +46,38 @@ const TEXT = [
   "   #                    #                                   #           ##             #                             #                ",
   "                                                                                                                                      ",
 ];
-const GRID = TEXT.map((row) =>
-  Array.from({ length: row.length }, (_, j) => row.charAt(j) == "#"),
-);
+const ONE_LINE = [
+  "                                                                                                                                                                                                                                                                              ",
+  "   ##                    #                               ##                    ##                                #             ##                      ##                ##                ##                                                                            ##   ",
+  "  ####      ##          ##    ##                ##      ####      ##          ####      ##          ##          ##    ##      ####                #   ####      ##      ####          #   ####      ##          ##          ##    ##                            ##      ####  ",
+  " ######    ####    ##  ###   ####          #   ####    ######    ####        ######    ####    #   ####         ##   ####    ######      #       ##  ######    ####    #### #        ##  ######    ####    #   ####         ##   ####    #           #         ####    ###### ",
+  "########  #### #  ########  #### #        ##  ######  ########  #### #      ########  ######  ##  ######        ##  ######  ########    ##       ## ########  ######  ####  ##  #    ## ########  ######  ##  #### #        ##  #### #  ##          ##        #### #  ########",
+  "###  ##  ####  ## ######## ####  ##  #    ## ######## ###  ##  ####  ##     ###  ##  ######## ## ######## #     ## ######## ###  ##     ##       ## ###  ##  ######## ###   ## ##    ## ###  ##  ######## ## ####  ## #     ## ####  ## ##          ##       ####  ## ###  ###",
+  "##       ###   ## ######## ###   ## ##    ## #### ##  ##       ###   ##     ##       ###  ##  ## ###  ##  ##    ## ###  ##  ##          ## #     ## ##       #### ##  ##    ## ##    ## ##       #### ##  ## ###   ## ##    ## ###   ## ##          ##       ###   ## ##    ##",
+  "##       ##    ## ## ## ## ##    ## ##    ## ####     ###      ##    ##     ###      ##       ## ##       ###   ## ##       ###         ## ##    ## ###      ####     ##   ### ##    ## ##       ####     ## ##    ## ###   ## ##    ## ##          ##       ##    ## ##   ###",
+  "##       ##    ## ##    ## ##   ### ##    ## # ##     ####     ##   ###     ####     ##       ## ###      ####  ## ##       ####        ## ###   ## ####     # ##     ##  #### ##    ## ##       # ##     ## ##    ## ####  ## ##    ## ##          ##       ##    ## ##  ####",
+  "##       ##    ## ##    ## ##  #### ##    ##   ##      ##      ##  ####      ####    ##       ## ####     ##### ## ##        ##         ## ####  ##  ####      ##     ## ####  ##    ## ##         ##     ## ##    ## ##### ## ##    ## ##          ##       ##    ## ##  ### ",
+  "##       ##    ## ##    ## ## ####  ##    ##   ##              ## ####        ####   ##       ##  ##      ######## ##                   ## ##### ##   ####     ##     ######   ##    ## ##         ##     ## ##    ## ######## ##    ## ##          ##       ##    ## ##  ##  ",
+  "##       ##    ## ##    ## ######   ##    ##   ##      ##      ######          ####  ##       ##          ## ##### ##        ##         ## ########    ####    ##     #######  ##    ## ##         ##     ## ##    ## ## ##### ##    ## ##          ##       ##    ## ##  ### ",
+  "##       ##    ## ##    ## ## ##    ##    ##   ##     ####     #######          #### ##       ##  ##      ##  #### ##       ####        ## ## #####     ####   ##     ######## ##    ## ##         ##     ## ##    ## ##  #### ##   ### ##          ##       ##   ### ##  ####",
+  "##     # ##    ## ##    ## ##       ##    ##   ##     ###      ########     #    ### ##       ## ####     ##   ### ##       ###         ## ##  #### #    ###   ##     ###  ### ##    ## ##     #   ##     ## ##    ## ##   ### ##  #### ##          ##       ##  #### ##   ###",
+  "##    ## ##    ## ##    ## ##       ##    ##   ##     ##       ###  ###     ##    ## ##     # ## ###      ##    ## ##     # ##          ## ##   ### ##    ##   ##     ##    ## ##    ## ##    ##   ##     ## ##    ## ##    ## ## ##### ##          ##       ## ##### ##    ##",
+  "##   ### ##    ## ##    ## ##       ##    ##   ##     ##   ##  ##    ##     ##   ### ##    ## ## ##       ##     # ##    ## ##   ##     ## ##    ## ##   ###   ##     ##    ## ##    ## ##   ###   ##     ## ##    ## ##     # ######## ##   ##     ##   ##  ######## ##   ###",
+  "##  #### ##   ### ##    ## ##       ##    ##   ##     ##  #### ##    ##     ##  #### ##   ### ## ##   ##  ##       ##   ### ##  ####    ## ##     # ##  ####   ##     ##    ## ###  ### ##  ####   ##     ## ##   ### ##       ## ## ## ##  ####    ##  #### ## ## ## ##  ####",
+  " # ####  ##  #### ##    #  ##       ###  ###   ##      # ####  ##    ##      # ####  ##  #### ## ##  #### ##       ##  ####  # ####     ## ##        # ####    ##     ##    #  ########  # ####    ##     ## ##  #### ##       ##    ##  # ####      # ####  ##    ##  # #### ",
+  "  ####    # ####  ##       ##       ########   ##       ####   ##    #        ####    # ####  ##  # ####  ##        # ####    ####      ## ##         ####     ##     ##        ##  ##    ####     ##     ##  # ####  ##       ##    #    ####        ####   ##    #    ####  ",
+  "   ##      ####   #        ##        ##  ##    ##        ##    ##              ##      ####   #    ####   #          ####      ##       #  ##          ##      ##     #                    ##      ##     #    ####   #        ##          ##          ##    ##          ##   ",
+  "            ##             #                    #              #                        ##          ##                ##                   #                    #                                   #           ##             #                             #                ",
+  "                                                                                                                                                                                                                                                                              ",
+];
 
+const CLEANUP_PHASES = 12;
 const MILLIS_BEFORE_FIRST_CLEANUP_PHASE = 1000;
 const MILLIS_BETWEEN_CLEANUP_PHASES = 50;
-const CLEANUP_DISTRIBUTION = [
-  0.04, 0.1, 0.18, 0.28, 0.38, 0.48, 0.58, 0.72, 0.86, 1,
-];
+const CLEANUP_SMOOTHING_FACTOR = 20;
 const MIN_MILLIS_BETWEEN_RENDERS = 20;
-
-const makeCleanupTemplate = () => {
-  const cleanupPhases: number[][][] = Array.from(
-    { length: CLEANUP_DISTRIBUTION.length },
-    () => [],
-  );
-  for (let i = 0; i < GRID.length; i++) {
-    for (let j = 0; j < GRID[0]!.length; j++) {
-      const x = Math.random();
-      for (let k = 0; k < CLEANUP_DISTRIBUTION.length; k++) {
-        if (x <= CLEANUP_DISTRIBUTION[k]!) {
-          cleanupPhases[k]!.push([i, j]);
-          break;
-        }
-      }
-    }
-  }
-  return cleanupPhases;
-};
-
-const getTriangles = (): Float32Array => {
-  const vertcies = [];
-  for (let i = 0; i < GRID.length; i++) {
-    for (let j = 0; j < GRID[0]!.length; j++) {
-      if (GRID[i]![j]) {
-        const facingLeft = j % 2 === i % 2;
-        if (facingLeft) {
-          vertcies.push(
-            (j + 1) / 134,
-            i / 45,
-            (j + 1) / 134,
-            (i + 2) / 45,
-            j / 134,
-            (i + 1) / 45,
-          );
-        } else {
-          vertcies.push(
-            j / 134,
-            i / 45,
-            (j + 1) / 134,
-            (i + 1) / 45,
-            j / 134,
-            (i + 2) / 45,
-          );
-        }
-      }
-    }
-  }
-  return new Float32Array(vertcies);
-};
+const X_PADDING = 2;
+const Y_PADDING = 2;
 
 const CsilTriangles: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -158,15 +128,76 @@ const CsilTriangles: React.FC = () => {
     return null;
   };
 
-  let canvasActive =
-    typeof window !== "undefined" ? window.innerWidth >= 640 : true;
+  let useOneLine =
+    typeof window !== "undefined" ? window.innerWidth >= 1024 : true;
+  let grid: boolean[][], gridRows: number, gridCols: number;
+  const setupGrid = () => {
+    const text = useOneLine ? ONE_LINE : TWO_LINES;
+    grid = text.map((row) =>
+      Array.from({ length: row.length }, (_, j) => row.charAt(j) == "#"),
+    );
+    gridRows = grid.length;
+    gridCols = grid[0]!.length;
+  };
+  setupGrid();
+
+  const makeCleanupTemplate = () => {
+    const cleanupPhases: number[][][] = Array.from(
+      { length: CLEANUP_PHASES },
+      () => [],
+    );
+    for (let i = 0; i < gridRows; i++) {
+      for (let j = 0; j < gridCols; j++) {
+        const t =
+          (Math.pow(CLEANUP_SMOOTHING_FACTOR, Math.random()) - 1) /
+          (CLEANUP_SMOOTHING_FACTOR - 1);
+        const phase = Math.floor((1 - t) * CLEANUP_PHASES);
+        cleanupPhases[phase]!.push([i, j]);
+      }
+    }
+    return cleanupPhases;
+  };
+
+  const getTriangles = (): Float32Array => {
+    const deltaX = 1 / (gridCols + 2 * X_PADDING);
+    const deltaY = 1 / (gridRows + 1 + 2 * Y_PADDING);
+    const vertcies = [];
+    for (let i = 0; i < gridRows; i++) {
+      for (let j = 0; j < gridCols; j++) {
+        if (grid[i]![j]) {
+          const facingLeft = j % 2 === i % 2;
+          if (facingLeft) {
+            vertcies.push(
+              (j + 1 + X_PADDING) * deltaX,
+              (i + Y_PADDING) * deltaY,
+              (j + 1 + X_PADDING) * deltaX,
+              (i + 2 + Y_PADDING) * deltaY,
+              (j + X_PADDING) * deltaX,
+              (i + 1 + Y_PADDING) * deltaY,
+            );
+          } else {
+            vertcies.push(
+              (j + X_PADDING) * deltaX,
+              (i + Y_PADDING) * deltaY,
+              (j + 1 + X_PADDING) * deltaX,
+              (i + 1 + Y_PADDING) * deltaY,
+              (j + X_PADDING) * deltaX,
+              (i + 2 + Y_PADDING) * deltaY,
+            );
+          }
+        }
+      }
+    }
+    return new Float32Array(vertcies);
+  };
+
   const render = () => {
     const gl = glRef.current;
     const program = programRef.current;
     const vertexBuffer = vertexBufferRef.current;
     const canvas = canvasRef.current;
 
-    if (!canvasActive || !gl || !program || !vertexBuffer || !canvas) return;
+    if (!gl || !program || !vertexBuffer || !canvas) return;
 
     const triangles = getTriangles();
 
@@ -260,10 +291,21 @@ const CsilTriangles: React.FC = () => {
   const setCanvasSize = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    canvasActive = window.innerWidth >= 640;
 
-    const width = 0.97 * window.innerWidth;
-    const height = width / 5.27488;
+    const shouldUseOneLine = window.innerWidth >= 1024;
+    if (shouldUseOneLine != useOneLine) {
+      useOneLine = shouldUseOneLine;
+      setupGrid();
+      if (cleanupTimeoutId !== null) {
+        clearTimeout(cleanupTimeoutId);
+      }
+    }
+
+    const aspectRatio =
+      (gridRows + 1 + 2 * Y_PADDING) /
+      (Math.sqrt(3) * (gridCols + 2 * X_PADDING));
+    const width = window.innerWidth;
+    const height = aspectRatio * width;
     canvas.style.width = `${Math.round(width)}px`;
     canvas.style.height = `${Math.round(height)}px`;
     const ratio = window.devicePixelRatio || 1;
@@ -272,24 +314,31 @@ const CsilTriangles: React.FC = () => {
     render();
   };
 
+  let lastRender = 0;
   let renderTimeoutId: NodeJS.Timeout | null = null;
   const requestRender = () => {
-    if (renderTimeoutId === null) {
+    if (renderTimeoutId !== null) return;
+    const millisSinceLastRender = Date.now() - lastRender;
+    if (millisSinceLastRender >= MIN_MILLIS_BETWEEN_RENDERS) {
+      render();
+    } else {
       renderTimeoutId = setTimeout(() => {
         renderTimeoutId = null;
+        lastRender = Date.now();
         render();
-      }, MIN_MILLIS_BETWEEN_RENDERS);
+      }, MIN_MILLIS_BETWEEN_RENDERS - millisSinceLastRender);
     }
   };
 
   let cleanupPhases: number[][][] = [];
   let cleanupTimeoutId: NodeJS.Timeout | null = null;
   const doCleanupPhase = () => {
+    let text = useOneLine ? ONE_LINE : TWO_LINES;
     cleanupPhases
       .pop()!
       .forEach(
         (pos) =>
-          (GRID[pos[0]!]![pos[1]!] = TEXT[pos[0]!]!.charAt(pos[1]!) === "#"),
+          (grid[pos[0]!]![pos[1]!] = text[pos[0]!]!.charAt(pos[1]!) === "#"),
       );
     render();
     if (cleanupPhases.length > 0) {
@@ -315,32 +364,28 @@ const CsilTriangles: React.FC = () => {
 
   const handleMouseMove = (event: React.MouseEvent) => {
     const canvas = canvasRef.current;
-    if (!canvas || !canvasActive) return;
+    if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
     const x = (event.clientX - rect.left) / rect.width;
     const y = (event.clientY - rect.top) / rect.height;
 
-    const row = Math.min(
-      Math.max(Math.floor(y * GRID.length), 0),
-      GRID.length - 1,
-    );
-    const col = Math.min(
-      Math.max(Math.floor(x * GRID[0]!.length), 0),
-      GRID[0]!.length - 1,
-    );
+    const unclippedRow = y * (gridRows + 2 * Y_PADDING) - Y_PADDING;
+    const unclippedCol = x * (gridCols + 2 * X_PADDING) - X_PADDING;
+    const row = Math.min(Math.max(Math.floor(unclippedRow), 0), gridRows - 1);
+    const col = Math.min(Math.max(Math.floor(unclippedCol), 0), gridCols - 1);
 
     const firstRow = Math.max(row - 8, 0);
-    const lastRow = Math.min(row + 8, GRID.length - 1);
+    const lastRow = Math.min(row + 8, gridRows - 1);
     const firstCol = Math.max(col - 5, 0);
-    const lastCol = Math.min(col + 5, GRID[0]!.length - 1);
+    const lastCol = Math.min(col + 5, gridCols - 1);
     for (let i = firstRow; i <= lastRow; i++) {
       for (let j = firstCol; j <= lastCol; j++) {
         const p =
           0.05 -
           Math.sqrt((row - i) * (row - i) + 2 * (col - j) * (col - j)) / 150;
         if (Math.random() < p) {
-          GRID[i]![j] = !GRID[i]![j];
+          grid[i]![j] = !grid[i]![j];
         }
       }
     }
@@ -358,22 +403,10 @@ const CsilTriangles: React.FC = () => {
   }, []);
 
   return (
-    <div
-      className="flex w-full items-center justify-center border-b border-black"
-      style={{ aspectRatio: 5 }}
-    >
-      <canvas
-        ref={canvasRef}
-        onMouseMove={handleMouseMove}
-        className="hidden sm:block"
-      >
+    <div className="csil-triangles-aspect-ratio flex w-full border-b border-black">
+      <canvas ref={canvasRef} onMouseMove={handleMouseMove}>
         Computer Science Instructional Lab
       </canvas>
-      <img
-        src={image.src}
-        className="sm:hidden"
-        alt="Computer Science Instructional Lab"
-      />
     </div>
   );
 };

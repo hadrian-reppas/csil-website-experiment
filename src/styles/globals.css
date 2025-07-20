@@ -9,3 +9,14 @@ body {
     sans-serif;
   font-weight: 300;
 }
+
+.csil-triangles-aspect-ratio {
+  width: 100%;
+  aspect-ratio: 4.878020641724593;
+}
+
+@media (min-width: 1024px) {
+  .csil-triangles-aspect-ratio {
+    aspect-ratio: 17.577108195328606;
+  }
+}
