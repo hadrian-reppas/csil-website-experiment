@@ -1,7 +1,6 @@
 // eslint disable @typescript-eslint/no-unsafe-assignment
 // eslint disable @typescript-eslint/no-unsafe-member-access
 
-
 import { useRef, useState } from "react";
 
 import facebook from "../../pubilc/social_logos/facebook.svg";
@@ -33,7 +32,7 @@ const Footer: React.FC = () => {
         }}
         ref={csilCsilCsilRef}
       >
-        {Array.from({ length: 20 }, (_, index) => (
+        {Array.from({ length: 25 }, (_, index) => (
           <div
             key={index}
             className="mb-[4px] mt-[-5px] w-full overflow-visible text-nowrap"
@@ -62,19 +61,19 @@ const Footer: React.FC = () => {
           </a>
           <div className="mt-2 flex flex-row gap-x-1">
             <a
-              className="w-10 h-10 p-2"
+              className="h-10 w-10 p-2"
               href="https://www.facebook.com/uchicagocsil/"
             >
               <img src={facebook.src} className="h-6 w-6"></img>
             </a>
             <a
-              className="w-10 h-10 p-2"
+              className="h-10 w-10 p-2"
               href="https://www.instagram.com/uchicagocsil/"
             >
               <img src={instagram.src} className="h-6 w-6"></img>
             </a>
             <a
-              className="w-10 h-10 p-2"
+              className="h-10 w-10 p-2"
               href="https://twitter.com/UChicagoCSIL"
             >
               <img src={x.src} className="h-6 w-6"></img>
