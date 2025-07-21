@@ -364,7 +364,7 @@ const CsilTriangles: React.FC = () => {
 
   const handleMouseMove = (event: React.MouseEvent) => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || window.innerWidth < 640) return;
 
     const rect = canvas.getBoundingClientRect();
     const x = (event.clientX - rect.left) / rect.width;
@@ -403,10 +403,17 @@ const CsilTriangles: React.FC = () => {
   }, []);
 
   return (
-    <div className="csil-triangles-aspect-ratio flex w-full border-b border-black">
-      <canvas ref={canvasRef} onMouseMove={handleMouseMove}>
-        Computer Science Instructional Lab
-      </canvas>
+    <div className="flex w-full border-b border-black">
+      <div className="csil-triangles-aspect-ratio w-full">
+        <canvas
+          ref={canvasRef}
+          onMouseMove={handleMouseMove}
+          width="0"
+          height="0"
+        >
+          Computer Science Instructional Lab
+        </canvas>
+      </div>
     </div>
   );
 };
