@@ -74,12 +74,13 @@ const ONE_LINE = [
 const CLEANUP_PHASES = 12;
 const MILLIS_BEFORE_FIRST_CLEANUP_PHASE = 1000;
 const MILLIS_BETWEEN_CLEANUP_PHASES = 50;
-const CLEANUP_SMOOTHING_FACTOR = 20;
+const CLEANUP_SMOOTHING_FACTOR = 14;
 const MIN_MILLIS_BETWEEN_RENDERS = 20;
 const X_PADDING = 2;
 const Y_PADDING = 2;
 
 const CsilTriangles: React.FC = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const programRef = useRef<WebGLProgram | null>(null);
@@ -292,7 +293,10 @@ const CsilTriangles: React.FC = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const shouldUseOneLine = window.innerWidth >= 1024;
+    const width = containerRef.current
+      ? containerRef.current.clientWidth
+      : window.innerWidth;
+    const shouldUseOneLine = width >= 1024;
     if (shouldUseOneLine != useOneLine) {
       useOneLine = shouldUseOneLine;
       setupGrid();
@@ -304,7 +308,6 @@ const CsilTriangles: React.FC = () => {
     const aspectRatio =
       (gridRows + 1 + 2 * Y_PADDING) /
       (Math.sqrt(3) * (gridCols + 2 * X_PADDING));
-    const width = window.innerWidth;
     const height = aspectRatio * width;
     canvas.style.width = `${Math.round(width)}px`;
     canvas.style.height = `${Math.round(height)}px`;
@@ -364,7 +367,7 @@ const CsilTriangles: React.FC = () => {
 
   const handleMouseMove = (event: React.MouseEvent) => {
     const canvas = canvasRef.current;
-    if (!canvas || window.innerWidth < 640) return;
+    if (!canvas || containerRef.current!.clientWidth < 640) return;
 
     const rect = canvas.getBoundingClientRect();
     const x = (event.clientX - rect.left) / rect.width;
@@ -395,16 +398,20 @@ const CsilTriangles: React.FC = () => {
   };
 
   useEffect(() => {
-    window.addEventListener("resize", setCanvasSize);
-
-    return () => {
-      window.removeEventListener("resize", setCanvasSize);
-    };
-  }, []);
+    if (containerRef.current !== null) {
+      const observer = new ResizeObserver(setCanvasSize);
+      observer.observe(containerRef.current);
+      return () => {
+        if (containerRef.current !== null) {
+          observer.unobserve(containerRef.current);
+        }
+      };
+    }
+  }, [containerRef.current]);
 
   return (
     <div className="flex w-full border-b border-black">
-      <div className="csil-triangles-aspect-ratio w-full">
+      <div className="csil-triangles-aspect-ratio w-full" ref={containerRef}>
         <canvas
           ref={canvasRef}
           onMouseMove={handleMouseMove}
