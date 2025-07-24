@@ -10,13 +10,18 @@ body {
   font-weight: 300;
 }
 
-.csil-triangles-aspect-ratio {
-  width: 100%;
-  aspect-ratio: 4.878020641724593;
+:root {
+  --csil-triangles-aspect-ratio: 4.878020641724593;
 }
 
 @media (min-width: 1024px) {
-  .csil-triangles-aspect-ratio {
-    aspect-ratio: 17.577108195328606;
+  :root {
+    --csil-triangles-aspect-ratio: 17.577108195328606;
   }
+}
+
+.hero-height {
+  min-height: calc(
+    100lvh - 3.5rem - 100vw / var(--csil-triangles-aspect-ratio)
+  );
 }
