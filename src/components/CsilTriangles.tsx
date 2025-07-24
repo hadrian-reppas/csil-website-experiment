@@ -411,10 +411,7 @@ const CsilTriangles: React.FC = () => {
 
   return (
     <div className="flex w-full border-b border-black">
-      <div
-        className="aspect-(--csil-triangles-aspect-ratio) w-full"
-        ref={containerRef}
-      >
+      <div className="csil-triangles-aspect-ratio w-full" ref={containerRef}>
         <canvas
           ref={canvasRef}
           onMouseMove={handleMouseMove}

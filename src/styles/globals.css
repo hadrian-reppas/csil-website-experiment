@@ -14,9 +14,17 @@ body {
   --csil-triangles-aspect-ratio: 4.878020641724593;
 }
 
+.csil-triangles-aspect-ratio {
+  aspect-ratio: 4.878020641724593;
+}
+
 @media (min-width: 1024px) {
   :root {
     --csil-triangles-aspect-ratio: 17.577108195328606;
+  }
+
+  .csil-triangles-aspect-ratio {
+    aspect-ratio: 17.577108195328606;
   }
 }
 
