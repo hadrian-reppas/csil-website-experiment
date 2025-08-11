@@ -48,7 +48,7 @@ const TWO_LINES = [
 ];
 const ONE_LINE = [
   "                                                                                                                                                                                                                                                                              ",
-  "   ##                    #                               ##                    ##                                #             ##                      ##                ##                ##                                                                            ##   ",
+  "   ##                    #                               ##                    ##                                #             ##                      ##                ##                ##                                #                                           ##   ",
   "  ####      ##          ##    ##                ##      ####      ##          ####      ##          ##          ##    ##      ####                #   ####      ##      ####          #   ####      ##          ##          ##    ##                            ##      ####  ",
   " ######    ####    ##  ###   ####          #   ####    ######    ####        ######    ####    #   ####         ##   ####    ######      #       ##  ######    ####    #### #        ##  ######    ####    #   ####         ##   ####    #           #         ####    ###### ",
   "########  #### #  ########  #### #        ##  ######  ########  #### #      ########  ######  ##  ######        ##  ######  ########    ##       ## ########  ######  ####  ##  #    ## ########  ######  ##  #### #        ##  #### #  ##          ##        #### #  ########",
@@ -74,7 +74,7 @@ const ONE_LINE = [
 const CLEANUP_PHASES = 12;
 const MILLIS_BEFORE_FIRST_CLEANUP_PHASE = 1000;
 const MILLIS_BETWEEN_CLEANUP_PHASES = 50;
-const CLEANUP_SMOOTHING_FACTOR = 14;
+const CLEANUP_SMOOTHING_FACTOR = 10;
 const MIN_MILLIS_BETWEEN_RENDERS = 20;
 const X_PADDING = 2;
 const Y_PADDING = 2;

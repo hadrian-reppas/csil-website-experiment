@@ -22,6 +22,7 @@ const NAVBAR_ITEMS: Item[] = [
     index: 1,
     text: "Explore our services: equipment, software and minicourses.",
     links: [
+      { label: "Make a Reservation", href: "/reservations" },
       { label: "Available Hardware", href: "/hardware" },
       { label: "Available Software", href: "/software" },
       { label: "Minicourses", href: "/minicourses" },
@@ -111,7 +112,7 @@ const Dropdown: React.FC<DropdownProps> = ({ item, isOpen, dropdownRef }) => {
   const links = item ? item.links : [];
   return (
     <div
-      className={`overflow-hidden absolute top-full hidden w-screen grid-cols-2 gap-x-4 bg-black px-6 duration-300 sm:grid ${dropdownHeight}`}
+      className={`absolute top-full hidden w-screen grid-cols-2 gap-x-4 overflow-hidden bg-black px-6 duration-300 sm:grid ${dropdownHeight}`}
       style={{ transitionProperty: "height" }}
       ref={dropdownRef}
     >
@@ -144,7 +145,7 @@ const MobileDropdown: React.FC<MobileDropdownProps> = ({ isOpen, close }) => {
 
   const height = isOpen ? "h-dvh" : "h-0";
   return (
-    <div className="pointer-events-none fixed h-lvh w-full z-10">
+    <div className="pointer-events-none fixed z-10 h-lvh w-full">
       <div
         className={`pointer-events-auto sticky top-0 flex w-full flex-col overflow-y-scroll bg-black duration-500 sm:hidden ${height}`}
         style={{ transitionProperty: "height" }}

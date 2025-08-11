@@ -1,10 +1,76 @@
+import Link from "next/link";
+
+import rightArrow from "../../pubilc/right-arrow.svg";
+
 // Serving UChicago since 1985
-// Serving UChicago for 35 years
+// Serving UChicago for 40 years
 // UChicago's computing hub since 1985
-// Hardware and software for every need
+
+// Hardware and
+// software for
+// every need
+
+// Hardware and software
+// for every need
+
+interface ButtonProps {
+  label: string;
+  href: string;
+}
+
+const Button: React.FC<ButtonProps> = ({ label, href }) => {
+  return (
+    <Link
+      className="group relative flex h-12 w-72 items-center justify-between border border-black bg-white sm:h-14 sm:w-96"
+      href={href}
+    >
+      <span className="ml-4 text-nowrap text-xl sm:text-[22px]">{label}</span>
+      <img
+        className="mr-4 h-7 w-7 transition-transform duration-300 ease-in-out will-change-transform group-hover:translate-x-1.5 motion-reduce:transition-none sm:mr-6"
+        src={rightArrow.src}
+        alt="right arrow"
+      ></img>
+      <div className="absolute left-0 top-0 h-full w-full bg-white opacity-0 mix-blend-difference duration-150 hover:opacity-100"></div>
+    </Link>
+  );
+};
+
+const Content: React.FC = () => {
+  return (
+    <div className="w-full max-w-[1152px]">
+      <div className="grid grid-cols-1 whitespace-nowrap px-8 pb-16 pt-[max(128px,22vh)] leading-none">
+        <h2 className="text-5xl font-normal leading-[0.8] sm:hidden">
+          Hardware and
+          <br />
+          software for
+          <br />
+          <i>every</i> need
+        </h2>
+        <h2 className="hidden text-5xl font-normal leading-[0.8] sm:block">
+          Hardware and software
+          <br />
+          for <i>every</i> need
+        </h2>
+        <h3 className="mb-8 mt-2 text-2xl sm:mb-12 sm:mt-3 sm:text-3xl">
+          Serving UChicago for 40 years
+        </h3>
+        <div className="grid grid-cols-1 gap-y-2">
+          <Button label="Learn More" href="/about" />
+          <Button label="Make a Reservation" href="/reservations" />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Hero: React.FC = () => {
-  return <div className="hero-height w-full bg-green-200"></div>;
+  return (
+    <>
+      <div className="hero-height flex w-full justify-center bg-green-200">
+        <Content />
+      </div>
+    </>
+  );
 };
 
 export default Hero;
