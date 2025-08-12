@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image, { type StaticImageData } from "next/image";
 
 import rightArrow from "../../public/right-arrow.svg";
 
@@ -25,11 +26,13 @@ const Button: React.FC<ButtonProps> = ({ label, href }) => {
       href={href}
     >
       <span className="ml-4 text-xl text-nowrap sm:text-[22px]">{label}</span>
-      <img
-        className="mr-4 h-7 w-7 transition-transform duration-300 ease-in-out will-change-transform group-hover:translate-x-1.5 motion-reduce:transition-none sm:mr-6"
-        src={rightArrow.src}
+      <Image
+        className="mr-4 transition-transform duration-300 ease-in-out will-change-transform group-hover:translate-x-1.5 motion-reduce:transition-none sm:mr-6"
+        src={(rightArrow as StaticImageData).src}
+        width={28}
+        height={28}
         alt="right arrow"
-      ></img>
+      />
       <div className="absolute top-0 left-0 h-full w-full bg-white opacity-0 mix-blend-difference duration-150 hover:opacity-100"></div>
     </Link>
   );

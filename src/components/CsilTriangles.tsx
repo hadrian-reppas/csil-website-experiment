@@ -289,7 +289,7 @@ const CsilTriangles: React.FC = () => {
         if (vertexBuffer) gl.deleteBuffer(vertexBuffer);
       }
     };
-  }, []);
+  });
 
   const setCanvasSize = () => {
     const canvas = canvasRef.current;
@@ -403,13 +403,10 @@ const CsilTriangles: React.FC = () => {
     if (containerRef.current !== null) {
       const observer = new ResizeObserver(setCanvasSize);
       observer.observe(containerRef.current);
-      return () => {
-        if (containerRef.current !== null) {
-          observer.unobserve(containerRef.current);
-        }
-      };
+      const current = containerRef.current;
+      return () => observer.unobserve(current);
     }
-  }, [containerRef.current]);
+  });
 
   return (
     <div className="flex w-full border-b border-black">

@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useEffect, useState, createRef } from "react";
-import type { RefObject } from "react";
+import { useRef, useEffect, useState, createRef, type RefObject } from "react";
 import Link from "next/link";
+import Image, { type StaticImageData } from "next/image";
 
 import logo from "../../public/logo.svg";
 import hamburger from "../../public/hamburger.svg";
@@ -154,8 +154,13 @@ const MobileDropdown: React.FC<MobileDropdownProps> = ({ isOpen, close }) => {
         style={{ transitionProperty: "height" }}
       >
         <div className="flex h-14 w-full flex-row justify-end">
-          <button className="h-14 w-14 p-3" onClick={close}>
-            <img className="h-8 w-8" src={x.src} alt="close menu icon" />
+          <button className="h-14 w-14 cursor-pointer p-3" onClick={close}>
+            <Image
+              src={(x as StaticImageData).src}
+              width={32}
+              height={32}
+              alt="close menu icon"
+            />
           </button>
         </div>
         <div className="grid w-full grid-cols-2 gap-x-4 px-4 pt-4 text-white">
@@ -242,7 +247,12 @@ const NavBar: React.FC = () => {
     <>
       <header className="relative sticky top-0 z-10 flex h-14 w-full flex-row border-b border-black bg-white text-[22px] font-light">
         <Link className="w-14 shrink-0 p-3" href="/">
-          <img className="h-8 w-8" src={logo.src} alt="CSIL logo" />
+          <Image
+            src={(logo as StaticImageData).src}
+            width={32}
+            height={32}
+            alt="CSIL logo"
+          />
         </Link>
         <div className="relative hidden flex-row sm:flex" ref={parentRef}>
           {NAVBAR_ITEMS.map((item, index) => (
@@ -265,12 +275,13 @@ const NavBar: React.FC = () => {
         </div>
         <div className="grow sm:hidden"></div>
         <button
-          className="h-14 w-14 p-3 sm:hidden"
+          className="h-14 w-14 cursor-pointer p-3 sm:hidden"
           onClick={() => setMobileDrodownOpen(true)}
         >
-          <img
-            className="h-8 w-8"
-            src={hamburger.src}
+          <Image
+            src={(hamburger as StaticImageData).src}
+            width={32}
+            height={32}
             alt="hamburger menu icon"
           />
         </button>

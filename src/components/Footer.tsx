@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Image, { type StaticImageData } from "next/image";
 
 import facebook from "../../public/social_logos/facebook.svg";
 import instagram from "../../public/social_logos/instagram.svg";
@@ -63,19 +64,34 @@ const Footer: React.FC = () => {
               className="h-10 w-10 p-2"
               href="https://www.facebook.com/uchicagocsil/"
             >
-              <img src={facebook.src} className="h-6 w-6"></img>
+              <Image
+                src={(facebook as StaticImageData).src}
+                width={24}
+                height={24}
+                alt="Facebook logo"
+              />
             </a>
             <a
               className="h-10 w-10 p-2"
               href="https://www.instagram.com/uchicagocsil/"
             >
-              <img src={instagram.src} className="h-6 w-6"></img>
+              <Image
+                src={(instagram as StaticImageData).src}
+                width={24}
+                height={24}
+                alt="Instagram logo"
+              />
             </a>
             <a
               className="h-10 w-10 p-2"
               href="https://twitter.com/UChicagoCSIL"
             >
-              <img src={x.src} className="h-6 w-6"></img>
+              <Image
+                src={(x as StaticImageData).src}
+                width={24}
+                height={24}
+                alt="X logo"
+              />
             </a>
           </div>
         </div>
