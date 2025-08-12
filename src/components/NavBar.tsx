@@ -1,9 +1,12 @@
-import { useRef, useEffect, useState, RefObject, createRef } from "react";
+"use client";
+
+import { useRef, useEffect, useState, createRef } from "react";
+import type { RefObject } from "react";
 import Link from "next/link";
 
-import logo from "../../pubilc/logo.svg";
-import hamburger from "../../pubilc/hamburger.svg";
-import x from "../../pubilc/x.svg";
+import logo from "../../public/logo.svg";
+import hamburger from "../../public/hamburger.svg";
+import x from "../../public/x.svg";
 
 const NAVBAR_ITEMS: Item[] = [
   {
@@ -75,13 +78,13 @@ interface NavBarItemProps {
   item: Item;
   isSelected: boolean;
   handleClick: (item: Item) => void;
-  buttonRef: RefObject<HTMLButtonElement>;
+  buttonRef: RefObject<HTMLButtonElement | null>;
 }
 
 interface DropdownProps {
   item: Item | null;
   isOpen: boolean;
-  dropdownRef: RefObject<HTMLDivElement>;
+  dropdownRef: RefObject<HTMLDivElement | null>;
 }
 
 interface MobileDropdownProps {
@@ -97,7 +100,7 @@ const NavBarItem: React.FC<NavBarItemProps> = ({
 }) => (
   <button
     className={
-      "flex items-center px-4" +
+      "flex cursor-pointer items-center px-4" +
       (isSelected ? "" : " transition-opacity hover:opacity-70")
     }
     onClick={() => handleClick(item)}
@@ -159,7 +162,7 @@ const MobileDropdown: React.FC<MobileDropdownProps> = ({ isOpen, close }) => {
           {NAVBAR_ITEMS.map((item) => (
             <div
               key={item.index}
-              className="col-span-2 grid gap-y-1 border-t border-gray-600 px-2 pb-8 pt-1"
+              className="col-span-2 grid gap-y-1 border-t border-gray-600 px-2 pt-1 pb-8"
             >
               <span className="mb-1 text-sm">{item.name}</span>
               {item.links.map((link, index) => (
@@ -252,7 +255,7 @@ const NavBar: React.FC = () => {
             />
           ))}
           <div
-            className={`pointer-events-none absolute left-0 right-0 h-full origin-left bg-white mix-blend-difference ${highlightOpacity} ${highlighTransition} duration-300`}
+            className={`pointer-events-none absolute right-0 left-0 h-full origin-left bg-white mix-blend-difference ${highlightOpacity} ${highlighTransition} duration-300`}
             style={{
               transform: highlight
                 ? `scale(${highlight.scale}, 1) translate(${highlight.translate}px, 0)`

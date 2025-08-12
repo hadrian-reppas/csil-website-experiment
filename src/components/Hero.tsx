@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import rightArrow from "../../pubilc/right-arrow.svg";
+import rightArrow from "../../public/right-arrow.svg";
 
 // Serving UChicago since 1985
 // Serving UChicago for 40 years
@@ -24,13 +24,13 @@ const Button: React.FC<ButtonProps> = ({ label, href }) => {
       className="group relative flex h-12 w-72 items-center justify-between border border-black bg-white sm:h-14 sm:w-96"
       href={href}
     >
-      <span className="ml-4 text-nowrap text-xl sm:text-[22px]">{label}</span>
+      <span className="ml-4 text-xl text-nowrap sm:text-[22px]">{label}</span>
       <img
         className="mr-4 h-7 w-7 transition-transform duration-300 ease-in-out will-change-transform group-hover:translate-x-1.5 motion-reduce:transition-none sm:mr-6"
         src={rightArrow.src}
         alt="right arrow"
       ></img>
-      <div className="absolute left-0 top-0 h-full w-full bg-white opacity-0 mix-blend-difference duration-150 hover:opacity-100"></div>
+      <div className="absolute top-0 left-0 h-full w-full bg-white opacity-0 mix-blend-difference duration-150 hover:opacity-100"></div>
     </Link>
   );
 };
@@ -38,20 +38,20 @@ const Button: React.FC<ButtonProps> = ({ label, href }) => {
 const Content: React.FC = () => {
   return (
     <div className="w-full max-w-[1152px]">
-      <div className="grid grid-cols-1 whitespace-nowrap px-8 pb-16 pt-[max(128px,22vh)] leading-none">
-        <h2 className="text-5xl font-normal leading-[0.8] sm:hidden">
+      <div className="grid grid-cols-1 px-8 pt-[max(112px,22vh)] pb-16 leading-none whitespace-nowrap">
+        <h2 className="text-5xl leading-[0.8] font-normal sm:hidden">
           Hardware and
           <br />
           software for
           <br />
           <i>every</i> need
         </h2>
-        <h2 className="hidden text-5xl font-normal leading-[0.8] sm:block">
+        <h2 className="hidden text-5xl leading-[0.8] font-normal sm:block">
           Hardware and software
           <br />
           for <i>every</i> need
         </h2>
-        <h3 className="mb-8 mt-2 text-2xl sm:mb-12 sm:mt-3 sm:text-3xl">
+        <h3 className="mt-2 mb-8 text-2xl sm:mt-3 sm:mb-12 sm:text-3xl">
           Serving UChicago for 40 years
         </h3>
         <div className="grid grid-cols-1 gap-y-2">

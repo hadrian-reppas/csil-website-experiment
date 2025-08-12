@@ -1,11 +1,10 @@
-// eslint disable @typescript-eslint/no-unsafe-assignment
-// eslint disable @typescript-eslint/no-unsafe-member-access
+"use client";
 
 import { useRef, useState } from "react";
 
-import facebook from "../../pubilc/social_logos/facebook.svg";
-import instagram from "../../pubilc/social_logos/instagram.svg";
-import x from "../../pubilc/social_logos/x.svg";
+import facebook from "../../public/social_logos/facebook.svg";
+import instagram from "../../public/social_logos/instagram.svg";
+import x from "../../public/social_logos/x.svg";
 
 const Footer: React.FC = () => {
   const csilCsilCsilRef = useRef<HTMLDivElement>(null);
@@ -26,7 +25,7 @@ const Footer: React.FC = () => {
       onMouseMove={handleMouseMove}
     >
       <div
-        className="absolute h-full w-full select-none overflow-hidden text-[10px] font-light leading-tight opacity-0 transition-opacity duration-300 group-hover/footer:opacity-100"
+        className="absolute h-full w-full overflow-hidden text-[10px] leading-tight font-light opacity-0 transition-opacity duration-300 select-none group-hover/footer:opacity-100"
         style={{
           maskImage: `radial-gradient(200px at ${mouseCoords.x}px ${mouseCoords.y}px, white, transparent)`,
         }}
@@ -35,7 +34,7 @@ const Footer: React.FC = () => {
         {Array.from({ length: 25 }, (_, index) => (
           <div
             key={index}
-            className="mb-[4px] mt-[-5px] w-full overflow-visible text-nowrap"
+            className="mt-[-5px] mb-[4px] w-full overflow-visible text-nowrap"
             style={{ marginLeft: `${-6 * (index + 1)}px` }}
           >
             {"CSIL ".repeat(200)}
