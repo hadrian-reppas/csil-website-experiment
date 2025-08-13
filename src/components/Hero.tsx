@@ -8,6 +8,8 @@ import rightArrow from "../../public/right-arrow.svg";
 
 import { createShader, createProgram, createUniform } from "../util/webgl";
 
+const MIN_MILLIS_BETWEEN_RENDERS = 20;
+
 const Grid: React.FC = () => {
   const xOffsetPx = 3;
   const yOffsetPx = 9;
@@ -27,6 +29,7 @@ const Grid: React.FC = () => {
   const rowsRef = useRef(-1);
   const colsRef = useRef(-1);
   const requestRef = useRef<number | null>(null);
+  const lastRenderRef = useRef<number>(0);
 
   const triangles = new Float32Array([0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]);
 
@@ -291,7 +294,13 @@ const Grid: React.FC = () => {
 
   useEffect(() => {
     const animate = () => {
-      render();
+      if (
+        performance.now() - lastRenderRef.current >
+        MIN_MILLIS_BETWEEN_RENDERS
+      ) {
+        render();
+        lastRenderRef.current = performance.now();
+      }
       requestRef.current = requestAnimationFrame(animate);
     };
     requestRef.current = requestAnimationFrame(animate);
@@ -300,7 +309,7 @@ const Grid: React.FC = () => {
         cancelAnimationFrame(requestRef.current);
       }
     };
-  }, []);
+  });
 
   return (
     <div className="absolute inset-0 h-full w-full" ref={containerRef}>
