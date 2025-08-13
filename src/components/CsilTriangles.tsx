@@ -2,6 +2,8 @@
 
 import React, { useRef, useEffect } from "react";
 
+import { createShader, createProgram } from "../util/webgl";
+
 const TWO_LINES = [
   "                                                                                                                                      ",
   "   ##                    #                                                       ##                                #             ##   ",
@@ -87,49 +89,6 @@ const CsilTriangles: React.FC = () => {
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const programRef = useRef<WebGLProgram | null>(null);
   const vertexBufferRef = useRef<WebGLBuffer | null>(null);
-
-  const createShader = (
-    gl: WebGLRenderingContext,
-    type: number,
-    source: string,
-  ): WebGLShader | null => {
-    const shader = gl.createShader(type);
-    if (!shader) {
-      console.error("Error creating shader");
-      return null;
-    }
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-
-    const success: unknown = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
-    if (success) return shader;
-
-    console.error("Error compiling shader:", gl.getShaderInfoLog(shader));
-    gl.deleteShader(shader);
-    return null;
-  };
-
-  const createProgram = (
-    gl: WebGLRenderingContext,
-    vertexShader: WebGLShader,
-    fragmentShader: WebGLShader,
-  ): WebGLProgram | null => {
-    const program = gl.createProgram();
-    if (!program) {
-      console.error("Error creating program");
-      return null;
-    }
-    gl.attachShader(program, vertexShader);
-    gl.attachShader(program, fragmentShader);
-    gl.linkProgram(program);
-
-    const success: unknown = gl.getProgramParameter(program, gl.LINK_STATUS);
-    if (success) return program;
-
-    console.error("Program linking failed:", gl.getProgramInfoLog(program));
-    gl.deleteProgram(program);
-    return null;
-  };
 
   let useOneLine =
     typeof window !== "undefined" ? window.innerWidth >= 1024 : true;
