@@ -89,17 +89,22 @@ const CsilTriangles: React.FC = () => {
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const programRef = useRef<WebGLProgram | null>(null);
   const vertexBufferRef = useRef<WebGLBuffer | null>(null);
+  const useOneLineRef = useRef(
+    typeof window === "undefined" || window.innerWidth >= 1024,
+  );
+  const gridRef = useRef<boolean[][]>([]);
+  const rowsRef = useRef(-1);
+  const colsRef = useRef(-1);
+  const lastRenderRef = useRef(0);
+  const renderTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  let useOneLine =
-    typeof window !== "undefined" ? window.innerWidth >= 1024 : true;
-  let grid: boolean[][], gridRows: number, gridCols: number;
   const setupGrid = () => {
-    const text = useOneLine ? ONE_LINE : TWO_LINES;
-    grid = text.map((row) =>
+    const text = useOneLineRef.current ? ONE_LINE : TWO_LINES;
+    gridRef.current = text.map((row) =>
       Array.from({ length: row.length }, (_, j) => row.charAt(j) == "#"),
     );
-    gridRows = grid.length;
-    gridCols = grid[0]!.length;
+    rowsRef.current = gridRef.current.length;
+    colsRef.current = gridRef.current[0]!.length;
   };
   setupGrid();
 
@@ -108,8 +113,8 @@ const CsilTriangles: React.FC = () => {
       { length: CLEANUP_PHASES },
       () => [],
     );
-    for (let i = 0; i < gridRows; i++) {
-      for (let j = 0; j < gridCols; j++) {
+    for (let i = 0; i < rowsRef.current; i++) {
+      for (let j = 0; j < colsRef.current; j++) {
         const t =
           (Math.pow(CLEANUP_SMOOTHING_FACTOR, Math.random()) - 1) /
           (CLEANUP_SMOOTHING_FACTOR - 1);
@@ -121,12 +126,12 @@ const CsilTriangles: React.FC = () => {
   };
 
   const getTriangles = (): Float32Array => {
-    const deltaX = 1 / (gridCols + 2 * X_PADDING);
-    const deltaY = 1 / (gridRows + 1 + 2 * Y_PADDING);
+    const deltaX = 1 / (colsRef.current + 2 * X_PADDING);
+    const deltaY = 1 / (rowsRef.current + 1 + 2 * Y_PADDING);
     const vertcies = [];
-    for (let i = 0; i < gridRows; i++) {
-      for (let j = 0; j < gridCols; j++) {
-        if (grid[i]![j]) {
+    for (let i = 0; i < rowsRef.current; i++) {
+      for (let j = 0; j < colsRef.current; j++) {
+        if (gridRef.current[i]![j]) {
           const facingLeft = j % 2 === i % 2;
           if (facingLeft) {
             vertcies.push(
@@ -258,8 +263,8 @@ const CsilTriangles: React.FC = () => {
       ? containerRef.current.clientWidth
       : window.innerWidth;
     const shouldUseOneLine = width >= 1024;
-    if (shouldUseOneLine != useOneLine) {
-      useOneLine = shouldUseOneLine;
+    if (shouldUseOneLine != useOneLineRef.current) {
+      useOneLineRef.current = shouldUseOneLine;
       setupGrid();
       if (cleanupTimeoutId !== null) {
         clearTimeout(cleanupTimeoutId);
@@ -267,8 +272,8 @@ const CsilTriangles: React.FC = () => {
     }
 
     const aspectRatio =
-      (gridRows + 1 + 2 * Y_PADDING) /
-      (Math.sqrt(3) * (gridCols + 2 * X_PADDING));
+      (rowsRef.current + 1 + 2 * Y_PADDING) /
+      (Math.sqrt(3) * (colsRef.current + 2 * X_PADDING));
     const height = aspectRatio * width;
     canvas.style.width = `${Math.round(width)}px`;
     canvas.style.height = `${Math.round(height)}px`;
@@ -278,17 +283,15 @@ const CsilTriangles: React.FC = () => {
     render();
   };
 
-  let lastRender = 0;
-  let renderTimeoutId: NodeJS.Timeout | null = null;
   const requestRender = () => {
-    if (renderTimeoutId !== null) return;
-    const millisSinceLastRender = Date.now() - lastRender;
+    if (renderTimeoutRef.current !== null) return;
+    const millisSinceLastRender = performance.now() - lastRenderRef.current;
     if (millisSinceLastRender >= MIN_MILLIS_BETWEEN_RENDERS) {
       render();
     } else {
-      renderTimeoutId = setTimeout(() => {
-        renderTimeoutId = null;
-        lastRender = Date.now();
+      renderTimeoutRef.current = setTimeout(() => {
+        renderTimeoutRef.current = null;
+        lastRenderRef.current = performance.now();
         render();
       }, MIN_MILLIS_BETWEEN_RENDERS - millisSinceLastRender);
     }
@@ -297,12 +300,13 @@ const CsilTriangles: React.FC = () => {
   let cleanupPhases: number[][][] = [];
   let cleanupTimeoutId: NodeJS.Timeout | null = null;
   const doCleanupPhase = () => {
-    const text = useOneLine ? ONE_LINE : TWO_LINES;
+    const text = useOneLineRef.current ? ONE_LINE : TWO_LINES;
     cleanupPhases
       .pop()!
       .forEach(
         (pos) =>
-          (grid[pos[0]!]![pos[1]!] = text[pos[0]!]!.charAt(pos[1]!) === "#"),
+          (gridRef.current[pos[0]!]![pos[1]!] =
+            text[pos[0]!]!.charAt(pos[1]!) === "#"),
       );
     render();
     if (cleanupPhases.length > 0) {
@@ -334,22 +338,28 @@ const CsilTriangles: React.FC = () => {
     const x = (event.clientX - rect.left) / rect.width;
     const y = (event.clientY - rect.top) / rect.height;
 
-    const unclippedRow = y * (gridRows + 2 * Y_PADDING) - Y_PADDING;
-    const unclippedCol = x * (gridCols + 2 * X_PADDING) - X_PADDING;
-    const row = Math.min(Math.max(Math.floor(unclippedRow), 0), gridRows - 1);
-    const col = Math.min(Math.max(Math.floor(unclippedCol), 0), gridCols - 1);
+    const unclippedRow = y * (rowsRef.current + 2 * Y_PADDING) - Y_PADDING;
+    const unclippedCol = x * (colsRef.current + 2 * X_PADDING) - X_PADDING;
+    const row = Math.min(
+      Math.max(Math.floor(unclippedRow), 0),
+      rowsRef.current - 1,
+    );
+    const col = Math.min(
+      Math.max(Math.floor(unclippedCol), 0),
+      colsRef.current - 1,
+    );
 
     const firstRow = Math.max(row - 8, 0);
-    const lastRow = Math.min(row + 8, gridRows - 1);
+    const lastRow = Math.min(row + 8, rowsRef.current - 1);
     const firstCol = Math.max(col - 5, 0);
-    const lastCol = Math.min(col + 5, gridCols - 1);
+    const lastCol = Math.min(col + 5, colsRef.current - 1);
     for (let i = firstRow; i <= lastRow; i++) {
       for (let j = firstCol; j <= lastCol; j++) {
         const p =
           0.05 -
           Math.sqrt((row - i) * (row - i) + 2 * (col - j) * (col - j)) / 150;
         if (Math.random() < p) {
-          grid[i]![j] = !grid[i]![j];
+          gridRef.current[i]![j] = !gridRef.current[i]![j];
         }
       }
     }
