@@ -30,6 +30,7 @@ const Grid: React.FC = () => {
   const colsRef = useRef(-1);
   const requestRef = useRef<number | null>(null);
   const lastRenderRef = useRef<number>(0);
+  const prevMouseRef = useRef<{ row: number; col: number }>(null);
 
   const triangles = new Float32Array([0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]);
 
@@ -42,13 +43,17 @@ const Grid: React.FC = () => {
 
     const newRows = Math.ceil(container.clientHeight / sizePx) + 1;
     const newCols = Math.ceil(container.clientWidth / sizePx) + 1;
-    if (newRows !== rowsRef.current || newCols != colsRef.current) {
+    if (newRows !== rowsRef.current || newCols !== colsRef.current) {
+      const newGrid = new Float32Array(newRows * newCols);
+      for (let i = 0; i < Math.min(rowsRef.current, newRows); i++) {
+        for (let j = 0; j < Math.min(colsRef.current, newCols); j++) {
+          newGrid[i * newCols + j] = gridRef.current[i * colsRef.current + j]!;
+        }
+      }
       rowsRef.current = newRows;
       colsRef.current = newCols;
-      gridRef.current = new Float32Array(newRows * newCols);
+      gridRef.current = new Float32Array(newGrid);
       gl.uniform2f(uGridSizeRef.current, colsRef.current, rowsRef.current);
-
-      // TODO: Read old grid
     }
 
     if (gridTexRef.current) {
@@ -121,17 +126,60 @@ const Grid: React.FC = () => {
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   };
 
+  const drawLineBetween = (
+    r1: number,
+    c1: number,
+    r2: number,
+    c2: number,
+    now: number,
+  ) => {
+    const dr = Math.abs(r2 - r1);
+    const dc = Math.abs(c2 - c1);
+    const sr = r1 < r2 ? 1 : -1;
+    const sc = c1 < c2 ? 1 : -1;
+
+    let err = dr - dc;
+
+    while (true) {
+      gridRef.current[r1 * colsRef.current + c1] = now;
+      if (r1 === r2 && c1 === c2) break;
+
+      const e2 = 2 * err;
+      if (e2 > -dc) {
+        err -= dc;
+        r1 += sr;
+      }
+      if (e2 < dr) {
+        err += dr;
+        c1 += sc;
+      }
+    }
+  };
+
   const handleMouseMove = (event: MouseEvent) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     const x = Math.round(event.clientX - rect.left);
     const y = Math.round(event.clientY - rect.top);
-    if (x < 0 || x > rect.width || y < 0 || y > rect.height) return;
-    const row = Math.floor((y - yOffsetPx) / sizePx + 1);
-    const col = Math.floor((x - xOffsetPx) / sizePx + 1);
-    gridRef.current[row * colsRef.current + col] =
-      performance.now() - startRef.current;
+    if (x < 0 || x > rect.width || y < 0 || y > rect.height) {
+      prevMouseRef.current = null;
+      return;
+    }
+    const newRow = Math.floor((y - yOffsetPx) / sizePx + 1);
+    const newCol = Math.floor((x - xOffsetPx) / sizePx + 1);
+    const now = performance.now() - startRef.current;
+    if (prevMouseRef.current !== null) {
+      const { row, col } = prevMouseRef.current;
+      drawLineBetween(row, col, newRow, newCol, now);
+    } else {
+      gridRef.current[newRow * colsRef.current + newCol] = now;
+    }
+    prevMouseRef.current = { row: newRow, col: newCol };
+  };
+
+  const clearPrevMouse = () => {
+    prevMouseRef.current = null;
   };
 
   useEffect(() => {
@@ -289,7 +337,15 @@ const Grid: React.FC = () => {
 
   useEffect(() => {
     window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseleave", clearPrevMouse);
+    document.addEventListener("scroll", clearPrevMouse);
+    window.addEventListener("resize", clearPrevMouse);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseleave", clearPrevMouse);
+      document.removeEventListener("scroll", clearPrevMouse);
+      window.removeEventListener("resize", clearPrevMouse);
+    };
   });
 
   useEffect(() => {
