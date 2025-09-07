@@ -8,31 +8,99 @@ import rightArrow from "../../public/right-arrow.svg";
 
 import { createShader, createProgram, createUniform } from "../util/webgl";
 
+const SCALE = 50;
+const X_OFFSET = 1;
+const Y_OFFSET = 1;
 const MIN_MILLIS_BETWEEN_RENDERS = 20;
 
-const Grid: React.FC = () => {
-  const xOffsetPx = 3;
-  const yOffsetPx = 9;
-  const sizePx = 13;
+const FUNDAMENTAL_VERTICES: [number, number][] = [
+  [-0.25, 0.933012701892219],
+  [0, 0],
+  [0.18301270189222, 1.183012701892219],
+  [0.43301270189222, -0.25],
+  [0.43301270189222, 0.75],
+  [0.68301270189222, 1.183012701892219],
+  [0.866025403784439, 0],
+  [1.116025403784439, -0.433012701892219],
+  [1.116025403784439, 0.933012701892219],
+  [1.366025403784439, 0],
+  [1.616025403784439, 0.433012701892219],
+  [1.616025403784439, 0.933012701892219],
+  [1.799038105676658, -0.25],
+  [2.116025403784438, 0.933012701892219],
+  [2.549038105676658, 0.183012701892219],
+  [2.799038105676658, -0.25],
+  [2.982050807568877, 0.433012701892219],
+  [2.982050807568877, 0.933012701892219],
+  [3.665063509461096, -0.75],
+  [3.665063509461096, -0.25],
+  [3.848076211353316, 0.433012701892219],
+  [4.098076211353316, 0],
+  [4.531088913245536, -0.75],
+  [4.848076211353316, 0.433012701892219],
+  [5.031088913245535, -0.75],
+  [5.031088913245535, -0.25],
+  [5.281088913245535, 0.183012701892219],
+  [5.531088913245535, -0.75],
+  [5.531088913245535, 0.616025403784439],
+  [5.781088913245535, 0.183012701892219],
+  [5.964101615137754, -1],
+  [6.214101615137754, -0.566987298107781],
+  [6.214101615137754, 0.433012701892219],
+  [6.464101615137754, -1],
+  [6.647114317029974, 0.183012701892219],
+  [6.897114317029974, -0.75],
+];
 
+const UX = -0.683012701892219;
+const UY = 1.183012701892219;
+const VX = 6.897114317029974;
+const VY = -0.75;
+
+const FUNDAMENTAL_EDGES: [number, number][] = [
+  [0, 2],
+  [2, 4],
+  [3, 4],
+  [4, 5],
+  [5, 8],
+  [6, 8],
+  [8, 13],
+  [9, 10],
+  [10, 11],
+  [10, 14],
+  [13, 16],
+  [14, 15],
+  [14, 16],
+  [16, 17],
+  [16, 19],
+  [17, 20],
+  [19, 21],
+  [20, 21],
+  [20, 23],
+  [21, 25],
+  [23, 26],
+  [24, 25],
+  [25, 28],
+  [27, 29],
+  [28, 29],
+  [29, 32],
+  [31, 32],
+  [32, 34],
+  [34, 35],
+];
+
+const Grid: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const programRef = useRef<WebGLProgram | null>(null);
   const vertexBufferRef = useRef<WebGLBuffer | null>(null);
+  const edgeBufferRef = useRef<WebGLBuffer | null>(null);
   const uResolutionRef = useRef<WebGLUniformLocation | null>(null);
-  const uNowRef = useRef<WebGLUniformLocation | null>(null);
-  const gridTexRef = useRef<WebGLTexture | null>(null);
-  const uGridSizeRef = useRef<WebGLUniformLocation | null>(null);
-  const startRef = useRef(performance.now() - 10000);
-  const gridRef = useRef(new Float32Array());
-  const rowsRef = useRef(-1);
-  const colsRef = useRef(-1);
+  const verticesRef = useRef<Float32Array>(new Float32Array());
+  const edgesRef = useRef<Uint32Array>(new Uint32Array());
   const requestRef = useRef<number | null>(null);
   const lastRenderRef = useRef<number>(0);
-  const prevMouseRef = useRef<{ row: number; col: number }>(null);
-
-  const triangles = new Float32Array([0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]);
 
   const setCanvasSize = () => {
     const canvas = canvasRef.current;
@@ -41,145 +109,64 @@ const Grid: React.FC = () => {
     const program = programRef.current;
     if (!canvas || !container || !gl || !program) return;
 
-    const newRows = Math.ceil(container.clientHeight / sizePx) + 1;
-    const newCols = Math.ceil(container.clientWidth / sizePx) + 1;
-    if (newRows !== rowsRef.current || newCols !== colsRef.current) {
-      const newGrid = new Float32Array(newRows * newCols);
-      for (let i = 0; i < Math.min(rowsRef.current, newRows); i++) {
-        for (let j = 0; j < Math.min(colsRef.current, newCols); j++) {
-          newGrid[i * newCols + j] = gridRef.current[i * colsRef.current + j]!;
-        }
-      }
-      rowsRef.current = newRows;
-      colsRef.current = newCols;
-      gridRef.current = new Float32Array(newGrid);
-      gl.uniform2f(uGridSizeRef.current, colsRef.current, rowsRef.current);
-    }
-
-    if (gridTexRef.current) {
-      gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, gridTexRef.current);
-      gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.LUMINANCE,
-        colsRef.current,
-        rowsRef.current,
-        0,
-        gl.LUMINANCE,
-        gl.FLOAT,
-        gridRef.current,
-      );
-    }
-
     canvas.style.width = `${container.clientWidth}px`;
     canvas.style.height = `${container.clientHeight}px`;
 
     const ratio = window.devicePixelRatio || 1;
-    const w = Math.floor(container.clientWidth * ratio);
-    const h = Math.floor(container.clientHeight * ratio);
-
-    canvas.width = w;
-    canvas.height = h;
+    canvas.width = Math.floor(container.clientWidth * ratio);
+    canvas.height = Math.floor(container.clientHeight * ratio);
 
     if (program && uResolutionRef.current) {
       gl.uniform2f(uResolutionRef.current, canvas.width, canvas.height);
     }
+
+    // TODO: Generate pentagons for real
+    const vertices = [];
+    const edges = [];
+    for (let u = 0; u < 40; u++) {
+      for (let v = 0; v < 12; v++) {
+        for (const edge of FUNDAMENTAL_EDGES) {
+          edges.push(
+            vertices.length / 2 + edge[0],
+            vertices.length / 2 + edge[1],
+          );
+        }
+        for (const vertex of FUNDAMENTAL_VERTICES) {
+          vertices.push(
+            SCALE * (vertex[0] + u * UX + v * VX) - X_OFFSET,
+            SCALE * (vertex[1] + u * UY + v * VY) - Y_OFFSET,
+          );
+        }
+      }
+    }
+    verticesRef.current = new Float32Array(vertices);
+    edgesRef.current = new Uint32Array(edges);
 
     render();
   };
 
   const render = () => {
     const gl = glRef.current;
+    const canvas = canvasRef.current;
     const program = programRef.current;
     const vertexBuffer = vertexBufferRef.current;
-    const canvas = canvasRef.current;
-    const gridTex = gridTexRef.current;
+    const edgeBuffer = edgeBufferRef.current;
+    const vertices = verticesRef.current;
+    const edges = edgesRef.current;
 
-    if (!gl || !program || !vertexBuffer || !canvas || !gridTex) return;
-
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, gridTex);
-    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-    gl.texSubImage2D(
-      gl.TEXTURE_2D,
-      0,
-      0,
-      0,
-      colsRef.current,
-      rowsRef.current,
-      gl.LUMINANCE,
-      gl.FLOAT,
-      gridRef.current,
-    );
-
-    gl.uniform1f(uNowRef.current, performance.now() - startRef.current);
+    if (!gl || !program || !vertexBuffer || !edgeBuffer || !canvas) return;
 
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, triangles, gl.DYNAMIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.DYNAMIC_DRAW);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, edgeBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, edges, gl.DYNAMIC_DRAW);
 
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
-  };
-
-  const drawLineBetween = (
-    r1: number,
-    c1: number,
-    r2: number,
-    c2: number,
-    now: number,
-  ) => {
-    const dr = Math.abs(r2 - r1);
-    const dc = Math.abs(c2 - c1);
-    const sr = r1 < r2 ? 1 : -1;
-    const sc = c1 < c2 ? 1 : -1;
-
-    let err = dr - dc;
-
-    while (true) {
-      gridRef.current[r1 * colsRef.current + c1] = now;
-      if (r1 === r2 && c1 === c2) break;
-
-      const e2 = 2 * err;
-      if (e2 > -dc) {
-        err -= dc;
-        r1 += sr;
-      }
-      if (e2 < dr) {
-        err += dr;
-        c1 += sc;
-      }
-    }
-  };
-
-  const handleMouseMove = (event: MouseEvent) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const x = Math.round(event.clientX - rect.left);
-    const y = Math.round(event.clientY - rect.top);
-    if (x < 0 || x > rect.width || y < 0 || y > rect.height) {
-      prevMouseRef.current = null;
-      return;
-    }
-    const newRow = Math.floor((y - yOffsetPx) / sizePx + 1);
-    const newCol = Math.floor((x - xOffsetPx) / sizePx + 1);
-    const now = performance.now() - startRef.current;
-    if (prevMouseRef.current !== null) {
-      const { row, col } = prevMouseRef.current;
-      drawLineBetween(row, col, newRow, newCol, now);
-    } else {
-      gridRef.current[newRow * colsRef.current + newCol] = now;
-    }
-    prevMouseRef.current = { row: newRow, col: newCol };
-  };
-
-  const clearPrevMouse = () => {
-    prevMouseRef.current = null;
+    gl.drawElements(gl.LINES, edges.length, gl.UNSIGNED_INT, 0);
   };
 
   useEffect(() => {
@@ -194,56 +181,23 @@ const Grid: React.FC = () => {
     glRef.current = gl;
 
     const vertexShaderSource = `
-        attribute vec2 aPosition;
-        void main() {
-          vec2 zeroToOne = aPosition;
-          vec2 zeroToTwo = zeroToOne * 2.0;
-          vec2 clipSpace = zeroToTwo - 1.0;
-          gl_Position = vec4(clipSpace * vec2(1, -1), 0.0, 1.0);
-        }
-      `;
-
-    const ratio = window.devicePixelRatio || 1;
-    const xOffset = xOffsetPx * ratio;
-    const yOffset = yOffsetPx * ratio;
-    const size = sizePx * ratio;
+      precision mediump float;
+      uniform vec2 uResolution;
+      attribute vec2 aPosition;
+      void main() {
+        vec2 zeroToOne = aPosition / uResolution;
+        vec2 zeroToTwo = zeroToOne * 2.0;
+        vec2 clipSpace = zeroToTwo - 1.0;
+        gl_Position = vec4(clipSpace * vec2(1, -1), 0.0, 1.0);
+      }
+    `;
 
     const fragmentShaderSource = `
-        precision mediump float;
-        precision mediump int;
-
-        uniform vec2 uResolution;
-        uniform float uNow;
-        uniform vec2 uGridSize;
-        uniform sampler2D uGrid;
-
-        float xOffset = ${xOffset.toFixed(1)};
-        float yOffset = ${yOffset.toFixed(1)};
-        float size = ${size.toFixed(1)};
-
-        float gridColor = 0.90;
-        float fillColor = 0.95;
-        float fadeDistance = 100.0;
-
-        void main() {
-          vec2 p = floor(vec2(gl_FragCoord.x, uResolution.y - gl_FragCoord.y));
-          float mx = mod(p.x, size), my = mod(p.y, size);
-          vec4 color;
-          if (abs(mx - xOffset) < 0.5 || abs(my - yOffset) < 0.5) {
-            color = vec4(gridColor, gridColor, gridColor, 1.0);
-          } else {
-            float row = floor((p.x - xOffset) / size + 1.0);
-            float col = floor((p.y - yOffset) / size + 1.0);
-            vec2 uv = vec2(row + 0.5, col + 0.5) / uGridSize;
-            float age = uNow - texture2D(uGrid, uv).r;
-            float t = clamp(2.0 - age / 1000.0, 0.0, 1.0);
-            float c = mix(1.0, fillColor, t);
-            color = vec4(c, c, c, 1.0);
-          }
-          float fade = clamp(gl_FragCoord.y / fadeDistance, 0.0, 1.0);
-          gl_FragColor = mix(vec4(1.0), color, fade);
-        }
-      `;
+      precision mediump float;
+      void main() {
+        gl_FragColor = vec4(0.9, 0.9, 0.9, 1.0);
+      }
+    `;
 
     const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
     const fragmentShader = createShader(
@@ -265,15 +219,20 @@ const Grid: React.FC = () => {
     gl.useProgram(program);
 
     uResolutionRef.current = createUniform(gl, program, "uResolution");
-    uNowRef.current = createUniform(gl, program, "uNow");
-    uGridSizeRef.current = createUniform(gl, program, "uGridSize");
 
     const vertexBuffer = gl.createBuffer();
     if (!vertexBuffer) {
-      console.error("Error creating buffer");
+      console.error("Error creating vertex buffer");
       return;
     }
     vertexBufferRef.current = vertexBuffer;
+
+    const edgeBuffer = gl.createBuffer();
+    if (!vertexBuffer) {
+      console.error("Error creating edge buffer");
+      return;
+    }
+    edgeBufferRef.current = edgeBuffer;
 
     const positionAttribLocation = gl.getAttribLocation(program, "aPosition");
     gl.enableVertexAttribArray(positionAttribLocation);
@@ -282,37 +241,10 @@ const Grid: React.FC = () => {
 
     setCanvasSize();
 
-    if (!gl.getExtension("OES_texture_float")) {
-      console.error("OES_texture_float required");
+    if (!gl.getExtension("OES_element_index_uint")) {
+      console.error("OES_element_index_uint required");
       return;
     }
-
-    const gridTex = gl.createTexture();
-    if (!gridTex) {
-      console.error("Failed to create texture");
-      return;
-    }
-    gridTexRef.current = gridTex;
-
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, gridTex);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-
-    gl.texImage2D(
-      gl.TEXTURE_2D,
-      0,
-      gl.LUMINANCE,
-      colsRef.current,
-      rowsRef.current,
-      0,
-      gl.LUMINANCE,
-      gl.FLOAT,
-      gridRef.current,
-    );
 
     render();
 
@@ -322,6 +254,7 @@ const Grid: React.FC = () => {
         if (vertexShader) gl.deleteShader(vertexShader);
         if (fragmentShader) gl.deleteShader(fragmentShader);
         if (vertexBuffer) gl.deleteBuffer(vertexBuffer);
+        if (edgeBuffer) gl.deleteBuffer(edgeBuffer);
       }
     };
   });
@@ -333,19 +266,6 @@ const Grid: React.FC = () => {
       const current = containerRef.current;
       return () => observer.unobserve(current);
     }
-  });
-
-  useEffect(() => {
-    window.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseleave", clearPrevMouse);
-    document.addEventListener("scroll", clearPrevMouse);
-    window.addEventListener("resize", clearPrevMouse);
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseleave", clearPrevMouse);
-      document.removeEventListener("scroll", clearPrevMouse);
-      window.removeEventListener("resize", clearPrevMouse);
-    };
   });
 
   useEffect(() => {

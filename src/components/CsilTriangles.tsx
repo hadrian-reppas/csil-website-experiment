@@ -195,6 +195,7 @@ const CsilTriangles: React.FC = () => {
     glRef.current = gl;
 
     const vertexShaderSource = `
+      precision mediump float;
       attribute vec2 aPosition;
       void main() {
         vec2 zeroToOne = aPosition;
