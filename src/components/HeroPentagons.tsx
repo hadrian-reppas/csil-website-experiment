@@ -196,10 +196,7 @@ const getUvs = (width: number, height: number): [number, number][] => {
     }
   }
 
-  return Array.from(
-    seen,
-    (key) => key.split(",").map(Number) as [number, number],
-  );
+  return Array.from(seen, (k) => k.split(",").map(Number) as [number, number]);
 };
 
 const HeroPentagons: React.FC = () => {
@@ -245,6 +242,12 @@ const HeroPentagons: React.FC = () => {
     verticesRef.current = new Float32Array(vertices);
     edgesRef.current = new Uint32Array(edges);
 
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBufferRef.current);
+    gl.bufferData(gl.ARRAY_BUFFER, verticesRef.current, gl.DYNAMIC_DRAW);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, edgeBufferRef.current);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, edgesRef.current, gl.DYNAMIC_DRAW);
+
     render();
   };
 
@@ -254,16 +257,9 @@ const HeroPentagons: React.FC = () => {
     const program = programRef.current;
     const vertexBuffer = vertexBufferRef.current;
     const edgeBuffer = edgeBufferRef.current;
-    const vertices = verticesRef.current;
     const edges = edgesRef.current;
 
     if (!gl || !program || !vertexBuffer || !edgeBuffer || !canvas) return;
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.DYNAMIC_DRAW);
-
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, edgeBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, edges, gl.DYNAMIC_DRAW);
 
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0, 0, 0, 0);
@@ -339,14 +335,12 @@ const HeroPentagons: React.FC = () => {
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.vertexAttribPointer(positionAttribLocation, 2, gl.FLOAT, false, 0, 0);
 
-    setCanvasSize();
-
     if (!gl.getExtension("OES_element_index_uint")) {
       console.error("OES_element_index_uint required");
       return;
     }
 
-    render();
+    setCanvasSize();
 
     return () => {
       if (gl) {
