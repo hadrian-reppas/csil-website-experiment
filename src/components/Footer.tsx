@@ -3,9 +3,9 @@
 import { useRef, useState } from "react";
 import Image, { type StaticImageData } from "next/image";
 
-import facebook from "../../public/social_logos/facebook.svg";
-import instagram from "../../public/social_logos/instagram.svg";
-import x from "../../public/social_logos/x.svg";
+import facebook from "~/../public/social_logos/facebook.svg";
+import instagram from "~/../public/social_logos/instagram.svg";
+import x from "~/../public/social_logos/x.svg";
 
 const Footer: React.FC = () => {
   const csilCsilCsilRef = useRef<HTMLDivElement>(null);

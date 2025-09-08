@@ -2,7 +2,8 @@
 
 import React, { useRef, useEffect } from "react";
 
-import { createShader, createProgram } from "../util/webgl";
+import { createShader, createProgram } from "~/util/webgl";
+import { useResize } from "~/util/resize";
 
 const TWO_LINES = [
   "                                                                                                                                      ",
@@ -97,6 +98,7 @@ const CsilTriangles: React.FC = () => {
   const colsRef = useRef(-1);
   const lastRenderRef = useRef(0);
   const renderTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const resizeRequestRef = useRef<any>(null);
 
   const setupGrid = () => {
     const text = useOneLineRef.current ? ONE_LINE : TWO_LINES;
@@ -185,7 +187,7 @@ const CsilTriangles: React.FC = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    setCanvasSize();
+    resize();
 
     const gl = canvas.getContext("webgl");
     if (!gl) {
@@ -256,7 +258,7 @@ const CsilTriangles: React.FC = () => {
     };
   });
 
-  const setCanvasSize = () => {
+  const resize = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -369,14 +371,7 @@ const CsilTriangles: React.FC = () => {
     requestCleanupAnimation();
   };
 
-  useEffect(() => {
-    if (containerRef.current !== null) {
-      const observer = new ResizeObserver(setCanvasSize);
-      observer.observe(containerRef.current);
-      const current = containerRef.current;
-      return () => observer.unobserve(current);
-    }
-  });
+  useResize(resize, containerRef, resizeRequestRef);
 
   return (
     <div className="flex w-full border-b border-black">

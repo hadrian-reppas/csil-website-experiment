@@ -4,9 +4,9 @@ import { useRef, useEffect, useState, createRef, type RefObject } from "react";
 import Link from "next/link";
 import Image, { type StaticImageData } from "next/image";
 
-import logo from "../../public/logo.svg";
-import hamburger from "../../public/hamburger.svg";
-import x from "../../public/x.svg";
+import logo from "~/../public/logo.svg";
+import hamburger from "~/../public/hamburger.svg";
+import x from "~/../public/x.svg";
 
 const NAVBAR_ITEMS: Item[] = [
   {

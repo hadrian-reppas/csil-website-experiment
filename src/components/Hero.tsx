@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image, { type StaticImageData } from "next/image";
 
-import rightArrow from "../../public/right-arrow.svg";
+import rightArrow from "~/../public/right-arrow.svg";
 
 import HeroPentagons from "./HeroPentagons";
 
