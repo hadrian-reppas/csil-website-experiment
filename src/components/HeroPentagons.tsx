@@ -2,7 +2,8 @@
 
 import { useRef, useEffect } from "react";
 
-import { createShader, createProgram } from "../util/webgl";
+import { createShader, createProgram } from "~/util/webgl";
+import { useResize } from "~/util/resize";
 
 const SCALE = 25;
 const X_OFFSET = 1;
@@ -10,8 +11,7 @@ const Y_OFFSET = 1;
 const MIN_MILLIS_BETWEEN_RENDERS = 20;
 
 type Point = [number, number];
-
-const BASE_VERTICES: Point[] = [
+const VERTICES: Point[] = [
   [-0.25, 0.933012701892219],
   [0, 0],
   [0.18301270189222, 1.183012701892219],
@@ -165,7 +165,7 @@ const NEIGHBORS = [
 ];
 
 const getVertex = (index: number, u: number, v: number): Point => {
-  const [x, y] = BASE_VERTICES[index]!;
+  const [x, y] = VERTICES[index]!;
   return [
     SCALE * (x + u * UX + v * VX) - X_OFFSET,
     SCALE * (y + u * UY + v * VY) - Y_OFFSET,
@@ -301,10 +301,11 @@ const HeroPentagons: React.FC = () => {
   const trianglesRef = useRef<Float32Array>(new Float32Array());
   const phasesRef = useRef<Float32Array>(new Float32Array());
   const edgesRef = useRef<Float32Array>(new Float32Array());
-  const requestRef = useRef<number | null>(null);
+  const animationRequestRef = useRef<number | null>(null);
   const lastRenderRef = useRef<number>(0);
+  const resizeRequestRef = useRef<any>(null);
 
-  const setCanvasSize = () => {
+  const resize = () => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
     const gl = glRef.current;
@@ -570,7 +571,7 @@ const HeroPentagons: React.FC = () => {
 
     edgePositionLocRef.current = gl.getAttribLocation(edgeProgram, "aPosition");
 
-    setCanvasSize();
+    resize();
 
     return () => {
       if (gl) {
@@ -587,14 +588,7 @@ const HeroPentagons: React.FC = () => {
     };
   });
 
-  useEffect(() => {
-    if (containerRef.current !== null) {
-      const observer = new ResizeObserver(setCanvasSize);
-      observer.observe(containerRef.current);
-      const current = containerRef.current;
-      return () => observer.unobserve(current);
-    }
-  });
+  useResize(resize, containerRef, resizeRequestRef);
 
   useEffect(() => {
     const animate = () => {
@@ -608,17 +602,16 @@ const HeroPentagons: React.FC = () => {
         for (let i = 0; i < phases.length; i++) {
           phases[i] = (phases[i]! + timeDelta) % 1;
         }
-        console.log(phases);
 
         render();
         lastRenderRef.current = performance.now();
       }
-      requestRef.current = requestAnimationFrame(animate);
+      animationRequestRef.current = requestAnimationFrame(animate);
     };
-    requestRef.current = requestAnimationFrame(animate);
+    animationRequestRef.current = requestAnimationFrame(animate);
     return () => {
-      if (requestRef.current !== null) {
-        cancelAnimationFrame(requestRef.current);
+      if (animationRequestRef.current !== null) {
+        cancelAnimationFrame(animationRequestRef.current);
       }
     };
   });
