@@ -325,7 +325,7 @@ const HeroPentagons: React.FC = () => {
     const triangles = new Float32Array(
       2 * 3 * 3 * PENTAGONS.length * uvs.length,
     );
-    const phases = new Float32Array(3 * 3 * PENTAGONS.length * uvs.length);
+    const phases = new Float32Array(PENTAGONS.length * uvs.length);
     let edgeOffset = 0,
       triangleOffset = 0,
       phaseOffset = 0;
@@ -344,11 +344,9 @@ const HeroPentagons: React.FC = () => {
           triangles[triangleOffset++] = cx / width;
           triangles[triangleOffset++] = cy / height;
         }
-        const phase =
-          (hashString(`${u},${v},${JSON.stringify(pentagon)}`) % 32) / 32;
-        for (let i = 0; i < 9; i++) {
-          phases[phaseOffset++] = phase;
-        }
+        const hash = hashString(`${u},${v},${JSON.stringify(pentagon)}`) % 32;
+        const phase = (hash / 32 + performance.now() / 1000) % 1;
+        phases[phaseOffset++] = phase;
       }
       for (const edge of EDGES) {
         const [a, b] = edge;
@@ -367,9 +365,6 @@ const HeroPentagons: React.FC = () => {
     gl.bindBuffer(gl.ARRAY_BUFFER, triangleBufferRef.current);
     gl.bufferData(gl.ARRAY_BUFFER, triangles, gl.DYNAMIC_DRAW);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, phaseBufferRef.current);
-    gl.bufferData(gl.ARRAY_BUFFER, phases, gl.DYNAMIC_DRAW);
-
     gl.bindBuffer(gl.ARRAY_BUFFER, edgeBufferRef.current);
     gl.bufferData(gl.ARRAY_BUFFER, edges, gl.DYNAMIC_DRAW);
 
@@ -384,8 +379,9 @@ const HeroPentagons: React.FC = () => {
     const triangleBuffer = triangleBufferRef.current;
     const phaseBuffer = phaseBufferRef.current;
     const edgeBuffer = edgeBufferRef.current;
-    const edges = edgesRef.current;
     const triangles = trianglesRef.current;
+    const phases = phasesRef.current;
+    const edges = edgesRef.current;
     const trianglePositionLoc = trianglePositionLocRef.current;
     const trianglePhaseLoc = trianglePhaseLocRef.current;
     const edgePositionLoc = edgePositionLocRef.current;
@@ -406,6 +402,13 @@ const HeroPentagons: React.FC = () => {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     gl.useProgram(triangleProgram);
+
+    const repeatedPhases = new Float32Array(9 * phases.length);
+    for (let i = 0; i < repeatedPhases.length; i++) {
+      repeatedPhases[i] = phases[Math.floor(i / 9)]!;
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, phaseBufferRef.current);
+    gl.bufferData(gl.ARRAY_BUFFER, repeatedPhases, gl.DYNAMIC_DRAW);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, triangleBuffer);
     gl.enableVertexAttribArray(trianglePositionLoc);
@@ -599,6 +602,14 @@ const HeroPentagons: React.FC = () => {
         performance.now() - lastRenderRef.current >
         MIN_MILLIS_BETWEEN_RENDERS
       ) {
+        // TODO: Repleace with real animation
+        const phases = phasesRef.current;
+        const timeDelta = (performance.now() - lastRenderRef.current) / 5000;
+        for (let i = 0; i < phases.length; i++) {
+          phases[i] = (phases[i]! + timeDelta) % 1;
+        }
+        console.log(phases);
+
         render();
         lastRenderRef.current = performance.now();
       }
