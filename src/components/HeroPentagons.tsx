@@ -11,7 +11,7 @@ const MIN_MILLIS_BETWEEN_RENDERS = 20;
 
 type Point = [number, number];
 
-const FUNDAMENTAL_VERTICES: Point[] = [
+const BASE_VERTICES: Point[] = [
   [-0.25, 0.933012701892219],
   [0, 0],
   [0.18301270189222, 1.183012701892219],
@@ -55,7 +55,7 @@ const UY = 1.183012701892219;
 const VX = 6.897114317029974;
 const VY = -0.75;
 
-const FUNDAMENTAL_EDGES: [number, number][] = [
+const EDGES: [number, number][] = [
   [0, 2],
   [2, 4],
   [3, 4],
@@ -87,14 +87,85 @@ const FUNDAMENTAL_EDGES: [number, number][] = [
   [34, 35],
 ];
 
+type Triangle = [number, number, number];
+const PENTAGONS: [Triangle, Triangle, Triangle][] = [
+  [
+    [0, 2, 4],
+    [0, 4, 1],
+    [1, 4, 3],
+  ],
+  [
+    [3, 4, 6],
+    [4, 5, 8],
+    [4, 8, 6],
+  ],
+  [
+    [6, 8, 10],
+    [6, 10, 7],
+    [8, 11, 10],
+  ],
+  [
+    [9, 10, 12],
+    [10, 14, 12],
+    [12, 14, 15],
+  ],
+  [
+    [10, 11, 13],
+    [10, 13, 14],
+    [13, 16, 14],
+  ],
+  [
+    [14, 16, 15],
+    [15, 16, 19],
+    [15, 19, 18],
+  ],
+  [
+    [16, 17, 20],
+    [16, 20, 19],
+    [19, 20, 21],
+  ],
+  [
+    [19, 21, 22],
+    [21, 25, 22],
+    [22, 25, 24],
+  ],
+  [
+    [20, 23, 21],
+    [21, 23, 25],
+    [23, 26, 25],
+  ],
+  [
+    [24, 25, 27],
+    [25, 28, 29],
+    [25, 29, 27],
+  ],
+  [
+    [27, 29, 31],
+    [27, 31, 30],
+    [29, 32, 31],
+  ],
+  [
+    [31, 32, 34],
+    [31, 34, 35],
+    [31, 35, 33],
+  ],
+];
+
 const NEIGHBORS = [
   { du: 1, dv: 0, strip: [0, 2, 4, 5, 8, 13, 16, 17, 20, 23, 26, 28, 29, 32] },
   { du: 0, dv: 1, strip: [34, 35] },
   { du: 1, dv: 1, strip: [32, 34] },
+  {
+    du: -1,
+    dv: 0,
+    strip: [3, 6, 7, 9, 12, 15, 18, 19, 22, 27, 30, 31, 33, 35],
+  },
+  { du: 0, dv: -1, strip: [0, 1] },
+  { du: -1, dv: -1, strip: [1, 3] },
 ];
 
 const getVertex = (index: number, u: number, v: number): Point => {
-  const [x, y] = FUNDAMENTAL_VERTICES[index]!;
+  const [x, y] = BASE_VERTICES[index]!;
   return [
     SCALE * (x + u * UX + v * VX) - X_OFFSET,
     SCALE * (y + u * UY + v * VY) - Y_OFFSET,
@@ -199,15 +270,37 @@ const getUvs = (width: number, height: number): [number, number][] => {
   return Array.from(seen, (k) => k.split(",").map(Number) as [number, number]);
 };
 
+const hashString = (s: string): number => {
+  let h1 = 0xdeadbeef,
+    h2 = 0x41c6ce57;
+  for (let i = 0, c; i < s.length; i++) {
+    c = s.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 2654435761);
+    h2 = Math.imul(h2 ^ c, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
+  h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
+  h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+
+  return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+};
+
 const HeroPentagons: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const glRef = useRef<WebGLRenderingContext | null>(null);
-  const programRef = useRef<WebGLProgram | null>(null);
-  const vertexBufferRef = useRef<WebGLBuffer | null>(null);
+  const triangleProgramRef = useRef<WebGLProgram | null>(null);
+  const trianglePositionLocRef = useRef(-1);
+  const trianglePhaseLocRef = useRef(-1);
+  const edgeProgramRef = useRef<WebGLProgram | null>(null);
+  const edgePositionLocRef = useRef(-1);
+  const triangleBufferRef = useRef<WebGLBuffer | null>(null);
+  const phaseBufferRef = useRef<WebGLBuffer | null>(null);
   const edgeBufferRef = useRef<WebGLBuffer | null>(null);
-  const verticesRef = useRef<Float32Array>(new Float32Array());
-  const edgesRef = useRef<Uint32Array>(new Uint32Array());
+  const trianglesRef = useRef<Float32Array>(new Float32Array());
+  const phasesRef = useRef<Float32Array>(new Float32Array());
+  const edgesRef = useRef<Float32Array>(new Float32Array());
   const requestRef = useRef<number | null>(null);
   const lastRenderRef = useRef<number>(0);
 
@@ -215,38 +308,69 @@ const HeroPentagons: React.FC = () => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
     const gl = glRef.current;
-    const program = programRef.current;
-    if (!canvas || !container || !gl || !program) return;
+    if (!canvas || !container || !gl) return;
 
-    canvas.style.width = `${container.clientWidth}px`;
-    canvas.style.height = `${container.clientHeight}px`;
+    const width = container.clientWidth,
+      height = container.clientHeight;
+
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
 
     const ratio = window.devicePixelRatio || 1;
-    canvas.width = Math.floor(container.clientWidth * ratio);
-    canvas.height = Math.floor(container.clientHeight * ratio);
+    canvas.width = Math.floor(width * ratio);
+    canvas.height = Math.floor(height * ratio);
 
-    const vertices = [];
-    const edges = [];
-    for (const uv of getUvs(container.clientWidth, container.clientHeight)) {
+    const uvs = getUvs(width, height);
+    const edges = new Float32Array(2 * 2 * EDGES.length * uvs.length);
+    const triangles = new Float32Array(
+      2 * 3 * 3 * PENTAGONS.length * uvs.length,
+    );
+    const phases = new Float32Array(3 * 3 * PENTAGONS.length * uvs.length);
+    let edgeOffset = 0,
+      triangleOffset = 0,
+      phaseOffset = 0;
+    for (const uv of uvs) {
       const [u, v] = uv;
-      for (const edge of FUNDAMENTAL_EDGES) {
-        const offset = vertices.length / 2;
-        edges.push(offset + edge[0], offset + edge[1]);
+      for (const pentagon of PENTAGONS) {
+        for (const triangle of pentagon) {
+          const [a, b, c] = triangle;
+          const [ax, ay] = getVertex(a, u, v);
+          const [bx, by] = getVertex(b, u, v);
+          const [cx, cy] = getVertex(c, u, v);
+          triangles[triangleOffset++] = ax / width;
+          triangles[triangleOffset++] = ay / height;
+          triangles[triangleOffset++] = bx / width;
+          triangles[triangleOffset++] = by / height;
+          triangles[triangleOffset++] = cx / width;
+          triangles[triangleOffset++] = cy / height;
+        }
+        const phase = (hashString(`${u},${v},${pentagon}`) % 32) / 32;
+        for (let i = 0; i < 9; i++) {
+          phases[phaseOffset++] = phase;
+        }
       }
-      for (const vertex of FUNDAMENTAL_VERTICES) {
-        const x = SCALE * (vertex[0] + u * UX + v * VX) - X_OFFSET;
-        const y = SCALE * (vertex[1] + u * UY + v * VY) - Y_OFFSET;
-        vertices.push(x / container.clientWidth, y / container.clientHeight);
+      for (const edge of EDGES) {
+        const [a, b] = edge;
+        const [ax, ay] = getVertex(a, u, v);
+        const [bx, by] = getVertex(b, u, v);
+        edges[edgeOffset++] = ax / width;
+        edges[edgeOffset++] = ay / height;
+        edges[edgeOffset++] = bx / width;
+        edges[edgeOffset++] = by / height;
       }
     }
-    verticesRef.current = new Float32Array(vertices);
-    edgesRef.current = new Uint32Array(edges);
+    trianglesRef.current = triangles;
+    phasesRef.current = phases;
+    edgesRef.current = edges;
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBufferRef.current);
-    gl.bufferData(gl.ARRAY_BUFFER, verticesRef.current, gl.DYNAMIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, triangleBufferRef.current);
+    gl.bufferData(gl.ARRAY_BUFFER, triangles, gl.DYNAMIC_DRAW);
 
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, edgeBufferRef.current);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, edgesRef.current, gl.DYNAMIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, phaseBufferRef.current);
+    gl.bufferData(gl.ARRAY_BUFFER, phases, gl.DYNAMIC_DRAW);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, edgeBufferRef.current);
+    gl.bufferData(gl.ARRAY_BUFFER, edges, gl.DYNAMIC_DRAW);
 
     render();
   };
@@ -254,18 +378,51 @@ const HeroPentagons: React.FC = () => {
   const render = () => {
     const gl = glRef.current;
     const canvas = canvasRef.current;
-    const program = programRef.current;
-    const vertexBuffer = vertexBufferRef.current;
+    const triangleProgram = triangleProgramRef.current;
+    const edgeProgram = edgeProgramRef.current;
+    const triangleBuffer = triangleBufferRef.current;
+    const phaseBuffer = phaseBufferRef.current;
     const edgeBuffer = edgeBufferRef.current;
     const edges = edgesRef.current;
+    const triangles = trianglesRef.current;
+    const trianglePositionLoc = trianglePositionLocRef.current;
+    const trianglePhaseLoc = trianglePhaseLocRef.current;
+    const edgePositionLoc = edgePositionLocRef.current;
 
-    if (!gl || !program || !vertexBuffer || !edgeBuffer || !canvas) return;
+    if (
+      !gl ||
+      !canvas ||
+      !edgeProgram ||
+      !triangleProgram ||
+      !triangleBuffer ||
+      !phaseBuffer ||
+      !edgeBuffer
+    )
+      return;
 
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    gl.drawElements(gl.LINES, edges.length, gl.UNSIGNED_INT, 0);
+    gl.useProgram(triangleProgram);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, triangleBuffer);
+    gl.enableVertexAttribArray(trianglePositionLoc);
+    gl.vertexAttribPointer(trianglePositionLoc, 2, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, phaseBuffer);
+    gl.enableVertexAttribArray(trianglePhaseLoc);
+    gl.vertexAttribPointer(trianglePhaseLoc, 1, gl.FLOAT, false, 0, 0);
+
+    gl.drawArrays(gl.TRIANGLES, 0, triangles.length / 2);
+
+    gl.useProgram(edgeProgram);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, edgeBuffer);
+    gl.enableVertexAttribArray(edgePositionLoc);
+    gl.vertexAttribPointer(edgePositionLoc, 2, gl.FLOAT, false, 0, 0);
+
+    gl.drawArrays(gl.LINES, 0, edges.length / 2);
   };
 
   useEffect(() => {
@@ -279,7 +436,88 @@ const HeroPentagons: React.FC = () => {
     }
     glRef.current = gl;
 
-    const vertexShaderSource = `
+    const triangleVertexShaderSource = `
+      precision mediump float;
+      attribute vec2 aPosition;
+      attribute float aPhase;
+      varying float vPhase;
+      void main() {
+        vec2 zeroToTwo = aPosition * 2.0;
+        vec2 clipSpace = zeroToTwo - 1.0;
+        gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0.0, 1.0);
+        vPhase = aPhase;
+      }
+    `;
+
+    const triangleFragmenShaderSource = `
+      precision mediump float;
+      varying float vPhase;
+
+      vec3 hsv2rgb(float h, float s, float v){
+        float c = v * s;
+        float x = c * (1.0 - abs(mod(h * 6.0, 2.0) - 1.0));
+        float m = v - c;
+        vec3 rgb = (h < 1.0 / 6.0) ? vec3(c, x, 0.0)
+                 : (h < 2.0 / 6.0) ? vec3(x, c, 0.0)
+                 : (h < 3.0 / 6.0) ? vec3(0.0, c, x)
+                 : (h < 4.0 / 6.0) ? vec3(0.0, x, c)
+                 : (h < 5.0 / 6.0) ? vec3(x, 0.0, c)
+                                   : vec3(c, 0.0, x);
+        return rgb + m;
+      }
+
+      void main() {
+        float t = fract(vPhase);
+        vec3 col = hsv2rgb(t, 0.2, 0.95);
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `;
+
+    const triangleVertexShader = createShader(
+      gl,
+      gl.VERTEX_SHADER,
+      triangleVertexShaderSource,
+    );
+    const triangleFragmentShader = createShader(
+      gl,
+      gl.FRAGMENT_SHADER,
+      triangleFragmenShaderSource,
+    );
+    if (!triangleVertexShader || !triangleFragmentShader) {
+      console.error("Error creating triangle shaders");
+      return;
+    }
+
+    const triangleProgram = createProgram(
+      gl,
+      triangleVertexShader,
+      triangleFragmentShader,
+    );
+    if (!triangleProgram) {
+      console.error("Error creating triangle program");
+      return;
+    }
+    triangleProgramRef.current = triangleProgram;
+
+    const triangleBuffer = gl.createBuffer();
+    const phaseBuffer = gl.createBuffer();
+    if (!triangleBuffer || !phaseBuffer) {
+      console.error("Error creating triangle buffers");
+      return;
+    }
+    triangleBufferRef.current = triangleBuffer;
+    phaseBufferRef.current = phaseBuffer;
+
+    trianglePositionLocRef.current = gl.getAttribLocation(
+      triangleProgram,
+      "aPosition",
+    );
+    trianglePhaseLocRef.current = gl.getAttribLocation(
+      triangleProgram,
+      "aPhase",
+    );
+
+    const edgeVertexShaderSource = `
       precision mediump float;
       attribute vec2 aPosition;
       void main() {
@@ -290,64 +528,56 @@ const HeroPentagons: React.FC = () => {
       }
     `;
 
-    const fragmentShaderSource = `
+    const edgeFragmentShaderSource = `
       precision mediump float;
       void main() {
         gl_FragColor = vec4(0.9, 0.9, 0.9, 1.0);
       }
     `;
 
-    const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-    const fragmentShader = createShader(
+    const edgeVertexShader = createShader(
+      gl,
+      gl.VERTEX_SHADER,
+      edgeVertexShaderSource,
+    );
+    const edgeFragmentShader = createShader(
       gl,
       gl.FRAGMENT_SHADER,
-      fragmentShaderSource,
+      edgeFragmentShaderSource,
     );
-    if (!vertexShader || !fragmentShader) {
-      console.error("Error creating shaders");
+    if (!edgeVertexShader || !edgeFragmentShader) {
+      console.error("Error creating edge shaders");
       return;
     }
 
-    const program = createProgram(gl, vertexShader, fragmentShader);
-    if (!program) {
-      console.error("Error creating program");
+    const edgeProgram = createProgram(gl, edgeVertexShader, edgeFragmentShader);
+    if (!edgeProgram) {
+      console.error("Error creating edge program");
       return;
     }
-    programRef.current = program;
-    gl.useProgram(program);
-
-    const vertexBuffer = gl.createBuffer();
-    if (!vertexBuffer) {
-      console.error("Error creating vertex buffer");
-      return;
-    }
-    vertexBufferRef.current = vertexBuffer;
+    edgeProgramRef.current = edgeProgram;
 
     const edgeBuffer = gl.createBuffer();
-    if (!vertexBuffer) {
+    if (!edgeBuffer) {
       console.error("Error creating edge buffer");
       return;
     }
     edgeBufferRef.current = edgeBuffer;
 
-    const positionAttribLocation = gl.getAttribLocation(program, "aPosition");
-    gl.enableVertexAttribArray(positionAttribLocation);
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-    gl.vertexAttribPointer(positionAttribLocation, 2, gl.FLOAT, false, 0, 0);
-
-    if (!gl.getExtension("OES_element_index_uint")) {
-      console.error("OES_element_index_uint required");
-      return;
-    }
+    edgePositionLocRef.current = gl.getAttribLocation(edgeProgram, "aPosition");
 
     setCanvasSize();
 
     return () => {
       if (gl) {
-        if (program) gl.deleteProgram(program);
-        if (vertexShader) gl.deleteShader(vertexShader);
-        if (fragmentShader) gl.deleteShader(fragmentShader);
-        if (vertexBuffer) gl.deleteBuffer(vertexBuffer);
+        if (triangleProgram) gl.deleteProgram(triangleProgram);
+        if (triangleVertexShader) gl.deleteBuffer(triangleVertexShader);
+        if (triangleFragmentShader) gl.deleteBuffer(triangleFragmentShader);
+        if (triangleBuffer) gl.deleteBuffer(triangleBuffer);
+        if (phaseBuffer) gl.deleteBuffer(phaseBuffer);
+        if (edgeProgram) gl.deleteProgram(edgeProgram);
+        if (edgeVertexShader) gl.deleteShader(edgeVertexShader);
+        if (edgeFragmentShader) gl.deleteShader(edgeFragmentShader);
         if (edgeBuffer) gl.deleteBuffer(edgeBuffer);
       }
     };
