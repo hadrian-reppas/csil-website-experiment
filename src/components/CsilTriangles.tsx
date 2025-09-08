@@ -3,7 +3,7 @@
 import React, { useRef, useEffect } from "react";
 
 import { createShader, createProgram } from "~/util/webgl";
-import { useResize } from "~/util/resize";
+import { useResize, type Timeout } from "~/util/resize";
 
 const TWO_LINES = [
   "                                                                                                                                      ",
@@ -98,7 +98,7 @@ const CsilTriangles: React.FC = () => {
   const colsRef = useRef(-1);
   const lastRenderRef = useRef(0);
   const renderTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const resizeRequestRef = useRef<any>(null);
+  const resizeRequestRef = useRef<Timeout | null>(null);
 
   const setupGrid = () => {
     const text = useOneLineRef.current ? ONE_LINE : TWO_LINES;

@@ -1,10 +1,12 @@
 import { useEffect, type RefObject } from "react";
 
+export type Timeout = ReturnType<typeof setTimeout>;
+
 export const useResize = (
   resize: () => void,
   containerRef: RefObject<HTMLDivElement | null>,
-  resizeRequestRef: RefObject<any>,
-  timeout: number = 40,
+  resizeRequestRef: RefObject<Timeout | null>,
+  timeout = 40,
 ) => {
   const resizeAndClearRequestRef = () => {
     resize();
@@ -12,9 +14,7 @@ export const useResize = (
   };
 
   const scheduleResize = () => {
-    if (resizeRequestRef.current === null) {
-      resizeRequestRef.current = setTimeout(resizeAndClearRequestRef, timeout);
-    }
+    resizeRequestRef.current ??= setTimeout(resizeAndClearRequestRef, timeout);
   };
 
   useEffect(() => {
