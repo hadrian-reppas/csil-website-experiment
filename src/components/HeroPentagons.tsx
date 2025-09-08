@@ -344,7 +344,8 @@ const HeroPentagons: React.FC = () => {
           triangles[triangleOffset++] = cx / width;
           triangles[triangleOffset++] = cy / height;
         }
-        const phase = (hashString(`${u},${v},${pentagon}`) % 32) / 32;
+        const phase =
+          (hashString(`${u},${v},${JSON.stringify(pentagon)}`) % 32) / 32;
         for (let i = 0; i < 9; i++) {
           phases[phaseOffset++] = phase;
         }
