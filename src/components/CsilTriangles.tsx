@@ -278,11 +278,14 @@ const CsilTriangles: React.FC = () => {
       (rowsRef.current + 1 + 2 * Y_PADDING) /
       (Math.sqrt(3) * (colsRef.current + 2 * X_PADDING));
     const height = aspectRatio * width;
+
     canvas.style.width = `${Math.round(width)}px`;
     canvas.style.height = `${Math.round(height)}px`;
+
     const ratio = window.devicePixelRatio || 1;
     canvas.width = Math.round(width * ratio);
     canvas.height = Math.round(height * ratio);
+
     render();
   };
 

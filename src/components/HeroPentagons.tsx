@@ -318,8 +318,8 @@ const HeroPentagons: React.FC = () => {
     canvas.style.height = `${height}px`;
 
     const ratio = window.devicePixelRatio || 1;
-    canvas.width = Math.floor(width * ratio);
-    canvas.height = Math.floor(height * ratio);
+    canvas.width = Math.round(width * ratio);
+    canvas.height = Math.round(height * ratio);
 
     const uvs = getUvs(width, height);
     const edges = new Float32Array(2 * 2 * EDGES.length * uvs.length);
@@ -473,7 +473,7 @@ const HeroPentagons: React.FC = () => {
 
       void main() {
         float t = fract(vPhase);
-        vec3 col = hsv2rgb(t, 0.2, 0.95);
+        vec3 col = hsv2rgb(t, 0.12, 0.96);
         gl_FragColor = vec4(col, 1.0);
       }
     `;

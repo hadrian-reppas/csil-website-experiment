@@ -32,8 +32,8 @@ const Button: React.FC<{
 const Content: React.FC = () => {
   return (
     <div className="absolute inset-0 flex justify-center">
-      <div className="w-full max-w-[1152px]">
-        <div className="grid grid-cols-1 px-8 pt-[max(112px,22vh)] pb-16 leading-none whitespace-nowrap">
+      <div className="flex w-full max-w-[1152px] items-center">
+        <div className="grid grid-cols-1 px-8 py-24 leading-none whitespace-nowrap">
           <h2 className="text-5xl leading-[0.8] font-normal sm:hidden">
             Hardware and
             <br />
