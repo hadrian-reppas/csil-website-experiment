@@ -623,7 +623,7 @@ const HeroPentagons: React.FC = () => {
   });
 
   return (
-    <div className="absolute inset-0 h-full w-full" ref={containerRef}>
+    <div className="absolute inset-0 z-0 h-full w-full" ref={containerRef}>
       <canvas ref={canvasRef} width="0" height="0"></canvas>
     </div>
   );
