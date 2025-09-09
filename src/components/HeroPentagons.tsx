@@ -9,6 +9,8 @@ const SCALE = 25;
 const X_OFFSET = 1;
 const Y_OFFSET = 1;
 const MIN_MILLIS_BETWEEN_RENDERS = 20;
+const ANIMATION_SPEED = 0.2;
+const RAINBOW_MODE = false;
 
 type Point = [number, number];
 const VERTICES: Point[] = [
@@ -332,6 +334,7 @@ const HeroPentagons: React.FC = () => {
       phaseOffset = 0;
     for (const uv of uvs) {
       const [u, v] = uv;
+      let pentagonId = 0;
       for (const pentagon of PENTAGONS) {
         for (const triangle of pentagon) {
           const [a, b, c] = triangle;
@@ -345,8 +348,8 @@ const HeroPentagons: React.FC = () => {
           triangles[triangleOffset++] = cx / width;
           triangles[triangleOffset++] = cy / height;
         }
-        const hash = hashString(`${u},${v},${JSON.stringify(pentagon)}`) % 32;
-        const phase = (hash / 32 + performance.now() / 1000) % 1;
+        const hash = hashString(`${u},${v},${pentagonId++}`) % 64;
+        const phase = (hash / 64 + performance.now() / 1000) % 1;
         phases[phaseOffset++] = phase;
       }
       for (const edge of EDGES) {
@@ -428,6 +431,8 @@ const HeroPentagons: React.FC = () => {
     gl.vertexAttribPointer(edgePositionLoc, 2, gl.FLOAT, false, 0, 0);
 
     gl.drawArrays(gl.LINES, 0, edges.length / 2);
+
+    lastRenderRef.current = performance.now();
   };
 
   useEffect(() => {
@@ -446,10 +451,10 @@ const HeroPentagons: React.FC = () => {
       attribute vec2 aPosition;
       attribute float aPhase;
       varying float vPhase;
+
       void main() {
-        vec2 zeroToTwo = aPosition * 2.0;
-        vec2 clipSpace = zeroToTwo - 1.0;
-        gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0.0, 1.0);
+        vec2 clipSpace = 2.0 * aPosition - 1.0;
+        gl_Position = vec4(clipSpace * vec2(1, -1), 0.0, 1.0);
         vPhase = aPhase;
       }
     `;
@@ -473,8 +478,13 @@ const HeroPentagons: React.FC = () => {
 
       void main() {
         float t = fract(vPhase);
-        vec3 col = hsv2rgb(t, 0.12, 0.96);
-        gl_FragColor = vec4(col, 1.0);
+        if (${RAINBOW_MODE}) {
+          vec3 col = hsv2rgb(t, 0.18, 0.98);
+          gl_FragColor = vec4(col, 1.0);
+        } else {
+          float c = 0.96 + 0.04 * sin(6.2831853 * t);
+          gl_FragColor = vec4(c, c, c, 1.0);
+        }
       }
     `;
 
@@ -525,16 +535,16 @@ const HeroPentagons: React.FC = () => {
     const edgeVertexShaderSource = `
       precision mediump float;
       attribute vec2 aPosition;
+
       void main() {
-        vec2 zeroToOne = aPosition;
-        vec2 zeroToTwo = zeroToOne * 2.0;
-        vec2 clipSpace = zeroToTwo - 1.0;
+        vec2 clipSpace = 2.0 * aPosition - 1.0;
         gl_Position = vec4(clipSpace * vec2(1, -1), 0.0, 1.0);
       }
     `;
 
     const edgeFragmentShaderSource = `
       precision mediump float;
+
       void main() {
         gl_FragColor = vec4(0.9, 0.9, 0.9, 1.0);
       }
@@ -592,19 +602,15 @@ const HeroPentagons: React.FC = () => {
 
   useEffect(() => {
     const animate = () => {
-      if (
-        performance.now() - lastRenderRef.current >
-        MIN_MILLIS_BETWEEN_RENDERS
-      ) {
-        // TODO: Repleace with real animation
+      const millisSinceLastRender = performance.now() - lastRenderRef.current;
+      if (millisSinceLastRender > MIN_MILLIS_BETWEEN_RENDERS) {
         const phases = phasesRef.current;
-        const timeDelta = (performance.now() - lastRenderRef.current) / 5000;
+        const delta = (ANIMATION_SPEED * millisSinceLastRender) / 1000;
         for (let i = 0; i < phases.length; i++) {
-          phases[i] = (phases[i]! + timeDelta) % 1;
+          phases[i] = (phases[i]! + delta) % 1;
         }
 
         render();
-        lastRenderRef.current = performance.now();
       }
       animationRequestRef.current = requestAnimationFrame(animate);
     };

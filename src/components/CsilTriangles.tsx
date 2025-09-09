@@ -199,16 +199,16 @@ const CsilTriangles: React.FC = () => {
     const vertexShaderSource = `
       precision mediump float;
       attribute vec2 aPosition;
+
       void main() {
-        vec2 zeroToOne = aPosition;
-        vec2 zeroToTwo = zeroToOne * 2.0;
-        vec2 clipSpace = zeroToTwo - 1.0;
+        vec2 clipSpace = 2.0 * aPosition - 1.0;
         gl_Position = vec4(clipSpace * vec2(1, -1), 0.0, 1.0);
       }
     `;
 
     const fragmentShaderSource = `
       precision mediump float;
+
       void main() {
         gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
       }
