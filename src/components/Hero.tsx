@@ -31,7 +31,7 @@ const Button: React.FC<{
 
 const Content: React.FC = () => {
   return (
-    <div className="hero-height relative flex justify-center">
+    <div className="hero-height relative flex justify-center border-b">
       <div className="flex w-full max-w-[1152px] items-center">
         <div className="grid grid-cols-1 px-8 pt-24 pb-36 leading-none whitespace-nowrap">
           <h2 className="text-5xl leading-[0.8] font-normal sm:hidden">
@@ -61,7 +61,7 @@ const Content: React.FC = () => {
 
 const Hero: React.FC = () => {
   return (
-    <div className="hero-height relative w-full">
+    <div className="hero-height relative w-full overflow-hidden">
       <HeroPentagons />
       <Content />
     </div>
