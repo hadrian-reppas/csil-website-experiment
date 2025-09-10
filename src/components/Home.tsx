@@ -57,9 +57,9 @@ const CARDS = [
     title: "Lab Reservations",
     content: (
       <>
-        Our five labs are located on the first floor of Crerar. Each lab holds
-        up to 20 students and comes with current hardware and software for macOS
-        and Ubuntu Linux, along with audio/video equipment. You can view our{" "}
+        CSIL operates five labs on the first floor of Crerar. They are a mix of
+        macOS labs, Ubuntu labs, and flexible-use spaces. Each lab seats up to
+        20 students and includes a ceiling-mounted projector. Check our{" "}
         <UnderlineLink href="/schedule" text="lab schedule" /> and{" "}
         <UnderlineLink href="/contact" text="contact us" /> to reserve a lab.
       </>
@@ -69,10 +69,11 @@ const CARDS = [
     title: "Minicourses",
     content: (
       <>
-        We offer free minicourse sessions each quarter, taught by UChicago
-        students. Learn about systems, software, and more in a relaxed
-        environment. Reservation is not required. Check out our{" "}
-        <UnderlineLink href="/minicourses" text="minicourses page" /> for more.
+        Each quarter, CSIL hosts free, student-led minicourses on systems,
+        software, and related topics. Sessions are informal and open to all; no
+        registration is required. See the{" "}
+        <UnderlineLink href="/minicourses" text="minicourses page" /> for more
+        details.
       </>
     ),
   },
@@ -80,21 +81,22 @@ const CARDS = [
     title: "User Support",
     content: (
       <>
-        CSIL has current hardware and software for macOS and Ubuntu Linux, along
-        with hardware, scanners, and video projection equipment in the labs.
-        Check out our list of our resources on our{" "}
-        <UnderlineLink href="/software" text="software page " />.
+        CSIL tutors provide support for our macOS, Ubuntu, and Windows
+        workstations, as well as our projectors, scanners, and 3D printers.
+        Visit the <UnderlineLink href="/software" text="software" /> and{" "}
+        <UnderlineLink href="/hardware" text="hardware" /> pages for a list of
+        supported tools and equipment.
       </>
     ),
   },
   {
-    title: "Borrow Resources",
+    title: "Equipment Rentals",
     content: (
       <>
-        From chargers to headphones to adapters to mice, and more, CSIL offers a
-        wide variety of <UnderlineLink href="/hardware" text="equipment" /> that
-        you can check out for free. Visit the CSIL tutor desk during oppening
-        hours to check out a resource.
+        CSIL offers free short-term rentals for common accessories: chargers,
+        adapters, headphones, mice, and more. Details and current inventory are
+        available on the <UnderlineLink href="/hardware" text="hardware" />{" "}
+        page. Pick up and return items at the tutor desk during opening hours.
       </>
     ),
   },
