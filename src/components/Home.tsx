@@ -2,14 +2,15 @@
 
 import { useState, Fragment } from "react";
 
+import UnderlineLink from "./UnderlineLink";
+
 type HoursData = {
   quarter: "AUTUMN" | "WINTER" | "SPRING" | "SUMMER";
   dateRange: string;
-  hours: { label: string; open: string | null; close: string | null }[];
+  hours: { label: string; open?: string; close?: string; closed?: true }[];
   message: string | null;
 };
 
-const QUARTERS = ["AUTUMN", "WINTER", "SPRING", "SUMMER"];
 const CURRENT_QUARTER = "AUTUMN";
 const HOURS: HoursData[] = [
   {
@@ -45,9 +46,57 @@ const HOURS: HoursData[] = [
     dateRange: "June 15 \u{2013} August 22, 2026",
     hours: [
       { label: "Weekdays", open: "10:00 AM", close: "4:00 PM" },
-      { label: "Weekends", open: null, close: null },
+      { label: "Weekends", closed: true },
     ],
     message: null,
+  },
+];
+
+const CARDS = [
+  {
+    title: "Lab Reservations",
+    content: (
+      <>
+        Our five labs are located on the first floor of Crerar. Each lab holds
+        up to 20 students and comes with current hardware and software for macOS
+        and Ubuntu Linux, along with audio/video equipment. You can view our{" "}
+        <UnderlineLink href="/schedule" text="lab schedule" /> and{" "}
+        <UnderlineLink href="/contact" text="contact us" /> to reserve a lab.
+      </>
+    ),
+  },
+  {
+    title: "Minicourses",
+    content: (
+      <>
+        We offer free minicourse sessions each quarter, taught by UChicago
+        students. Learn about systems, software, and more in a relaxed
+        environment. Reservation is not required. Check out our{" "}
+        <UnderlineLink href="/minicourses" text="minicourses page" /> for more.
+      </>
+    ),
+  },
+  {
+    title: "User Support",
+    content: (
+      <>
+        CSIL has current hardware and software for macOS and Ubuntu Linux, along
+        with hardware, scanners, and video projection equipment in the labs.
+        Check out our list of our resources on our{" "}
+        <UnderlineLink href="/software" text="software page " />.
+      </>
+    ),
+  },
+  {
+    title: "Borrow Resources",
+    content: (
+      <>
+        From chargers to headphones to adapters to mice, and more, CSIL offers a
+        wide variety of <UnderlineLink href="/hardware" text="equipment" /> that
+        you can check out for free. Visit the CSIL tutor desk during oppening
+        hours to check out a resource.
+      </>
+    ),
   },
 ];
 
@@ -66,21 +115,21 @@ const HoursSection: React.FC<{
         {dateRange}
       </div>
       <div className="inline-grid grid-cols-[auto_auto_auto_auto] gap-x-3 pt-6 text-xl sm:pt-4">
-        {hours.map(({ label, open, close }, index) => {
-          if (open !== null && close !== null) {
+        {hours.map(({ label, open, close, closed }, index) => {
+          if (closed) {
             return (
               <Fragment key={index}>
                 <div className="text-left font-normal">{label}:</div>
-                <div>{open}</div>
-                <div>&ndash;</div>
-                <div>{close}</div>
+                <div>Closed</div>
               </Fragment>
             );
           } else {
             return (
               <Fragment key={index}>
                 <div className="text-left font-normal">{label}:</div>
-                <div>Closed</div>
+                <div>{open}</div>
+                <div>&ndash;</div>
+                <div>{close}</div>
               </Fragment>
             );
           }
@@ -100,12 +149,12 @@ const LabHours: React.FC = () => {
   const currentData = HOURS.find(({ quarter }) => quarter === CURRENT_QUARTER)!;
 
   return (
-    <div className="w-full max-w-[1152px] border-x border-neutral-200 px-6 py-8 sm:px-10">
+    <div className="w-full max-w-[1152px] border-neutral-200 px-6 py-8 sm:border-x sm:px-10">
       <div className="flex justify-between">
         <div className="block text-3xl font-normal">Lab Hours</div>
         <div className="my-auto text-sm font-normal">
           <div className="hidden gap-x-2 md:flex">
-            {QUARTERS.map((quarter) => {
+            {HOURS.map(({ quarter }) => {
               const style =
                 quarter === activeQuarter
                   ? "bg-black text-white"
@@ -142,11 +191,31 @@ const LabHours: React.FC = () => {
   );
 };
 
+const Cards: React.FC = () => {
+  return (
+    <div className="w-full max-w-[1152px] border-neutral-200 sm:border-x">
+      <div className="grid grid-cols-1 divide-y divide-neutral-200 border-y border-neutral-200 sm:grid-cols-2 sm:divide-x-0 sm:divide-y-0 sm:[&>*]:border-neutral-200 sm:[&>*:nth-child(2n)]:border-l sm:[&>*:nth-child(n+3)]:border-t">
+        {CARDS.map(({ title, content }, index) => (
+          <section className="relative" key={index}>
+            <div className="absolute top-0 left-0 flex size-10 items-center justify-center border-r border-b border-neutral-200 text-center font-mono font-light text-neutral-600">
+              {(index + 1).toString().padStart(2, "0")}
+            </div>
+            <div className="p-10">
+              <h3 className="pt-1 text-xl font-normal">{title}</h3>
+              <p className="pt-2 text-lg leading-tight">{content}</p>
+            </div>
+          </section>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const Home: React.FC = () => {
   return (
-    <div className="flex w-full flex-col items-center divide-y sm:border-neutral-200 sm:px-12">
+    <div className="flex w-full flex-col items-center sm:px-12">
       <LabHours />
-      <div className="min-h-64 w-full max-w-[1152px] border-x border-neutral-200"></div>
+      <Cards />
       <div className="min-h-64 w-full max-w-[1152px] border-x border-neutral-200"></div>
     </div>
   );

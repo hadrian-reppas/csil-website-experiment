@@ -39,7 +39,7 @@ const NAVBAR_ITEMS: Item[] = [
       { label: "Lab Schedule", href: "/schedule" },
       { label: "Events", href: "/events" },
       { label: "Location and Hours", href: "/visit" },
-      { label: "Contact", href: "/Contact" },
+      { label: "Contact", href: "/contact" },
     ],
   },
   {
