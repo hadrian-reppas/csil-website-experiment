@@ -1,13 +1,14 @@
-import { useEffect, type RefObject } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 
-export type Timeout = ReturnType<typeof setTimeout>;
+type Timeout = ReturnType<typeof setTimeout>;
 
 export const useResize = (
   resize: () => void,
   containerRef: RefObject<HTMLDivElement | null>,
-  resizeRequestRef: RefObject<Timeout | null>,
   timeout = 40,
 ) => {
+  const resizeRequestRef = useRef<Timeout | null>(null);
+
   const resizeAndClearRequestRef = () => {
     resize();
     resizeRequestRef.current = null;

@@ -3,7 +3,7 @@
 import { useRef, useEffect } from "react";
 
 import { createShader, createProgram } from "~/util/webgl";
-import { useResize, type Timeout } from "~/util/resize";
+import { useResize } from "~/util/resize";
 
 const SCALE = 25;
 const X_OFFSET = 1;
@@ -305,7 +305,6 @@ const HeroPentagons: React.FC = () => {
   const edgesRef = useRef<Float32Array>(new Float32Array());
   const animationRequestRef = useRef<number | null>(null);
   const lastRenderRef = useRef<number>(0);
-  const resizeRequestRef = useRef<Timeout | null>(null);
 
   const resize = () => {
     const canvas = canvasRef.current;
@@ -598,7 +597,7 @@ const HeroPentagons: React.FC = () => {
     };
   });
 
-  useResize(resize, containerRef, resizeRequestRef);
+  useResize(resize, containerRef);
 
   useEffect(() => {
     const animate = () => {
