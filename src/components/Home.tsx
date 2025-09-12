@@ -216,9 +216,9 @@ const Cards: React.FC = () => {
 
 const About: React.FC = () => {
   return (
-    <div className="w-full max-w-[1152px] border-neutral-200 p-10 sm:border-x">
+    <div className="w-full max-w-[1152px] border-neutral-200 px-6 pt-8 pb-10 sm:border-x sm:px-10">
       <h2 className="block text-3xl font-normal">About CSIL</h2>
-      <p className="max-w-xl pt-2 pb-6 text-xl leading-tight">
+      <p className="max-w-xl pt-4 pb-8 text-xl leading-tight">
         Since 1985, the Computer Science Instructional Lab has supported
         teaching and learning at UChicago with computing resources and
         student-led instruction. CSIL is entirely student-run, with the
@@ -231,9 +231,9 @@ const About: React.FC = () => {
 
 const Contact: React.FC = () => {
   return (
-    <div className="w-full max-w-[1152px] border-neutral-200 p-10 sm:border-x">
+    <div className="w-full max-w-[1152px] border-neutral-200 px-6 pt-8 pb-10 sm:border-x sm:px-10">
       <h2 className="block text-3xl font-normal">Contact Us</h2>
-      <p className="max-w-xl pt-2 pb-6 text-xl leading-tight">
+      <p className="max-w-xl pt-4 pb-8 text-xl leading-tight">
         For questions about labs, equipment, and minicourses, please contact
         CSIL staff rather than Cosmos. Staff contact information are listed on
         the staff page.
