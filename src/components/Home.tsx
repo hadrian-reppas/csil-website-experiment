@@ -3,6 +3,7 @@
 import { useState, Fragment } from "react";
 
 import UnderlineLink from "./UnderlineLink";
+import BigButton from "./BigButton";
 
 type HoursData = {
   quarter: "AUTUMN" | "WINTER" | "SPRING" | "SUMMER";
@@ -151,9 +152,9 @@ const LabHours: React.FC = () => {
   const currentData = HOURS.find(({ quarter }) => quarter === CURRENT_QUARTER)!;
 
   return (
-    <div className="w-full max-w-[1152px] border-neutral-200 px-6 py-8 sm:border-x sm:px-10">
+    <div className="w-full max-w-[1152px] border-b border-neutral-200 px-6 py-8 sm:border-x sm:px-10">
       <div className="flex justify-between">
-        <div className="block text-3xl font-normal">Lab Hours</div>
+        <h2 className="text-3xl font-normal">Lab Hours</h2>
         <div className="my-auto text-sm font-normal">
           <div className="hidden gap-x-2 md:flex">
             {HOURS.map(({ quarter }) => {
@@ -202,8 +203,8 @@ const Cards: React.FC = () => {
             <div className="absolute top-0 left-0 flex size-10 items-center justify-center border-r border-b border-neutral-200 text-center font-mono font-light text-neutral-600">
               {(index + 1).toString().padStart(2, "0")}
             </div>
-            <div className="p-10">
-              <h3 className="pt-1 text-xl font-normal">{title}</h3>
+            <div className="p-12">
+              <h3 className="text-xl font-normal">{title}</h3>
               <p className="pt-2 text-lg leading-tight">{content}</p>
             </div>
           </section>
@@ -213,12 +214,42 @@ const Cards: React.FC = () => {
   );
 };
 
+const About: React.FC = () => {
+  return (
+    <div className="w-full max-w-[1152px] border-neutral-200 p-10 sm:border-x">
+      <h2 className="block text-3xl font-normal">About CSIL</h2>
+      <p className="max-w-xl pt-2 pb-6 text-xl leading-tight">
+        Since 1985, the Computer Science Instructional Lab has supported
+        teaching and learning at UChicago with computing resources and
+        student-led instruction. CSIL is entirely student-run, with the
+        exception of our director Cosmos.
+      </p>
+      <BigButton href="/about" label="Learn more" />
+    </div>
+  );
+};
+
+const Contact: React.FC = () => {
+  return (
+    <div className="w-full max-w-[1152px] border-neutral-200 p-10 sm:border-x">
+      <h2 className="block text-3xl font-normal">Contact Us</h2>
+      <p className="max-w-xl pt-2 pb-6 text-xl leading-tight">
+        For questions about labs, equipment, and minicourses, please contact
+        CSIL staff rather than Cosmos. Staff contact information are listed on
+        the staff page.
+      </p>
+      <BigButton href="/staff" label="Meet the staff" />
+    </div>
+  );
+};
+
 const Home: React.FC = () => {
   return (
     <div className="flex w-full flex-col items-center sm:px-12">
       <LabHours />
+      <About />
       <Cards />
-      <div className="min-h-64 w-full max-w-[1152px] border-x border-neutral-200"></div>
+      <Contact />
     </div>
   );
 };
