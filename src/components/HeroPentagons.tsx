@@ -585,8 +585,8 @@ const HeroPentagons: React.FC = () => {
     return () => {
       if (gl) {
         if (triangleProgram) gl.deleteProgram(triangleProgram);
-        if (triangleVertexShader) gl.deleteBuffer(triangleVertexShader);
-        if (triangleFragmentShader) gl.deleteBuffer(triangleFragmentShader);
+        if (triangleVertexShader) gl.deleteShader(triangleVertexShader);
+        if (triangleFragmentShader) gl.deleteShader(triangleFragmentShader);
         if (triangleBuffer) gl.deleteBuffer(triangleBuffer);
         if (phaseBuffer) gl.deleteBuffer(phaseBuffer);
         if (edgeProgram) gl.deleteProgram(edgeProgram);

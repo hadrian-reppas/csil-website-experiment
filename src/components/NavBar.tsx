@@ -85,6 +85,7 @@ interface DropdownProps {
   item: Item | null;
   isOpen: boolean;
   dropdownRef: RefObject<HTMLDivElement | null>;
+  close: () => void;
 }
 
 interface MobileDropdownProps {
@@ -110,7 +111,12 @@ const NavBarItem: React.FC<NavBarItemProps> = ({
   </button>
 );
 
-const Dropdown: React.FC<DropdownProps> = ({ item, isOpen, dropdownRef }) => {
+const Dropdown: React.FC<DropdownProps> = ({
+  item,
+  isOpen,
+  dropdownRef,
+  close,
+}) => {
   const dropdownHeight = isOpen ? "h-64" : "h-0";
   const links = item ? item.links : [];
   return (
@@ -130,6 +136,7 @@ const Dropdown: React.FC<DropdownProps> = ({ item, isOpen, dropdownRef }) => {
             key={index}
             href={link.href}
             className="block text-2xl text-white transition-opacity hover:opacity-70"
+            onClick={() => close()}
           >
             {link.label}
           </Link>
@@ -289,6 +296,7 @@ const NavBar: React.FC = () => {
           item={selected}
           isOpen={selectedIndex !== null}
           dropdownRef={dropdownRef}
+          close={() => setSelectedIndex(null)}
         />
       </header>
       <MobileDropdown

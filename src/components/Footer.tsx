@@ -22,7 +22,7 @@ const Footer: React.FC = () => {
 
   return (
     <footer
-      className="group/footer relative w-full overflow-visible bg-black text-gray-700"
+      className="group/footer relative mt-auto w-full overflow-visible bg-black text-gray-700"
       onMouseMove={handleMouseMove}
     >
       <div
