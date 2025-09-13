@@ -182,6 +182,7 @@ const MobileDropdown: React.FC<MobileDropdownProps> = ({ isOpen, close }) => {
                   key={index}
                   href={link.href}
                   className="block text-2xl text-white transition-opacity hover:opacity-70"
+                  onClick={close}
                 >
                   {link.label}
                 </Link>
